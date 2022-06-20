@@ -11,10 +11,10 @@
     class-transformer "^0.5.1"
     class-validator "^0.13.2"
 
-"@ahas/join-url@1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@ahas/join-url/-/join-url-1.0.2.tgz#137ae7d2955c54303e60e5db5d2b5f46464a73c8"
-  integrity sha512-bWfuT9wik57Mi2oHlmhqCh7lzz/6TICBLJBeNbtGXHtUIH5K/L5ggcTWR25VbmnJp7N8CleEQvaWCYtts900EQ==
+"@ahas/join-url@1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@ahas/join-url/-/join-url-1.0.4.tgz#702a25175ca5d34f2593c306de8e0aaae8bb9990"
+  integrity sha512-U75NMMXkoHe2sPLiDWjZ82G1URGBUHloZZqm2pySnTvpIBLSf5ffX/XuTeLvY1hS8AHwxLWhaRlqBnHoK0Zcdw==
 
 "@mikro-orm/core@^5.2.0":
   version "5.2.0"
