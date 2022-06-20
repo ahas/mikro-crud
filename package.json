@@ -1,11 +1,10 @@
 {
-    "name": "@nestjsplus/nestjs-package-starter",
+    "name": "@ahas/mikro-crud",
     "version": "1.0.0",
-    "description": "NestJS npm package starter",
-    "author": "John Biundo <johnfbiundo@gmail.com>",
+    "description": "CRUD interface for nestjs mikro orm",
+    "author": "ahas <dev@ahas.io>",
     "license": "MIT",
-    "readmeFilename": "README.md",
-    "main": "dist/test.js",
+    "main": "dist/index.js",
     "files": [
         "dist/**/*",
         "*.md"
