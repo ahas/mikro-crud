@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@ahas/class-converter@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@ahas/class-converter/-/class-converter-1.0.0.tgz#210db1b09e72891953a6903bcb6484983f5e1636"
-  integrity sha512-auy5EniVtN7BzGiMAJ7k1P0gY0Pem7iQ/uOJYSfTuarGMdsq00ogCOZHNcxtI4oak3f7cnwTs7MUkd3UyEXJ1w==
+"@ahas/class-converter@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@ahas/class-converter/-/class-converter-1.0.1.tgz#d69794c5174f52bf577b847b6823430aa63eefe6"
+  integrity sha512-Tzdxo8WfFvq3GKe/SC2eHV20I1BDzkgUtJY1A1fSc7Ut8jhDwM6CP9iEpNdatmqCOeoJCYAGCZQDgSNEQdq1Jg==
   dependencies:
     "@nestjs/swagger" "^5.2.1"
     class-transformer "^0.5.1"
