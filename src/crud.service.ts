@@ -21,16 +21,16 @@ import {
     CrudSearchQuery,
     CrudSearchResult,
     WhereQuery,
-} from "./mikro-crud.types";
+} from "./crud.types";
 import { getMetadataStorage, MetadataStorage } from "./metadata-storage";
 import { CrudParamTypes } from "./decorators";
 import { Request } from "express";
 import { ModuleRef } from "@nestjs/core";
-import { assignEntity, toPlainObject } from "./mikro-crud.utils";
+import { assignEntity, toPlainObject } from "./crud.utils";
 
 export type PrimaryKeys<T> = Record<keyof T & string, any>;
 @Injectable()
-export class MikroCrudService<
+export class CrudService<
     T_CrudName extends string,
     T_CrudEntity extends AnyEntity<T_CrudEntity>,
     P extends string = never,

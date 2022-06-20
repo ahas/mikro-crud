@@ -15,9 +15,8 @@ import {
     UploadedFile,
     UploadedFiles,
 } from "@nestjs/common";
-import { MikroCrudService, PrimaryKeys } from "./mikro-crud.service";
-import { CrudGetResult, CrudSearchQuery, CrudDTO, CrudOptions } from "./mikro-crud.types";
-// import joinUrl from "@ahas/join-url";
+import { CrudService, PrimaryKeys } from "./crud.service";
+import { CrudGetResult, CrudSearchQuery, CrudDTO, CrudOptions } from "./crud.types";
 import joinUrl from "@ahas/join-url";
 import { plainToInstance } from "class-transformer";
 import { ApiBody, ApiOperation, ApiParam } from "@nestjs/swagger";
@@ -54,7 +53,7 @@ export function getCrudControllerClass<
     @Controller(options.prefix)
     class CrudController implements ICrudController<T_CrudName, T_CrudEntity, P> {
         constructor(
-            private readonly crudService: MikroCrudService<T_CrudName, T_CrudEntity, P>,
+            private readonly crudService: CrudService<T_CrudName, T_CrudEntity, P>,
             private readonly orm: MikroORM,
             private readonly em: EntityManager,
         ) {}
