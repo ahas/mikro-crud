@@ -79,10 +79,10 @@ export const Body: () => ParameterDecorator = createCrudParamDecorator(
     CrudParamTypes.BODY,
 );
 export const File: () => ParameterDecorator = createCrudParamDecorator(
-    CrudParamTypes.FILES,
+    CrudParamTypes.FILE,
 );
 export const Files: () => ParameterDecorator = createCrudParamDecorator(
-    CrudParamTypes.FILE,
+    CrudParamTypes.FILES,
 );
 export const Req: () => ParameterDecorator = createCrudParamDecorator(
     CrudParamTypes.REQUEST,
