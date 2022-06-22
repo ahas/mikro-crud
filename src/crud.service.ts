@@ -99,7 +99,18 @@ export class CrudService<
                 [CrudParamTypes.OPTIONS]: options,
             };
             const entityName = this._metadata.name!;
-            let where: Record<string, any> = data.query.toFilter();
+
+            let appendix = {};
+            if (this._options.filter) {
+                appendix = this._options.filter.reduce((a, b) => {
+                    if (b in data.query) {
+                        a[b] = data.query[b];
+                    }
+                    return a;
+                }, {} as any);
+            }
+
+            let where: Record<string, any> = data.query.toFilter(appendix);
             hookArgs[CrudParamTypes.FILTER] = where;
 
             where =
