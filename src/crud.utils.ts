@@ -89,7 +89,9 @@ export function assignCollection(em: EntityManager<IDatabaseDriver<Connection>>,
 
         const entity = pickEntity(collection, item);
         if (item._deleted) {
-            em.remove(item);
+            em.remove(entity);
+            i++;
+            continue;
         }
         if (entity) {
             assignEntity(em, collection[i], item);
