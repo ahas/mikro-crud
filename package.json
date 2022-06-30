@@ -1,6 +1,6 @@
 {
     "name": "@ahas/mikro-crud",
-    "version": "1.0.11",
+    "version": "1.0.12",
     "description": "CRUD interface for nestjs mikro orm",
     "author": "ahas <dev@ahas.io>",
     "license": "MIT",
@@ -22,9 +22,9 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/nestjsplus/nestjs-package-starter"
+        "url": "https://github.com/ahas/mikro-crud"
     },
-    "bugs": "https://github.com/nestjsplus/nestjs-package-starter",
+    "bugs": "https://github.com/ahas/mikro-crud/issues",
     "peerDependencies": {
         "@mikro-orm/core": "^5.2.0"
     },
