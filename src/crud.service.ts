@@ -242,17 +242,16 @@ export class CrudService<
                     ...hookArgs,
                 })) || entity;
 
-            hookArgs[CrudParamTypes.ENTITIES] = [entity];
-            entity =
-                (await this.callHook(em, CrudHooks.AFTER_VIEW, {
-                    ...hookArgs,
-                })) || entity;
-
             await em.flush();
             await em.commit();
-            return {
-                [this._options.name]: wrap(entity).toPOJO(),
-            } as CrudGetResult<T_CrudName, T_CrudEntity, P>;
+
+            hookArgs[CrudParamTypes.ENTITIES] = [entity];
+            const json  =
+                (await this.callHook(em, CrudHooks.AFTER_VIEW, {
+                    ...hookArgs,
+                })) || { [this._options.name]: wrap(entity).toPOJO() };
+
+            return json as CrudGetResult<T_CrudName, T_CrudEntity, P>;
         } catch (e) {
             await em.rollback();
             throw e;

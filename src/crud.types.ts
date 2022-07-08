@@ -1,5 +1,11 @@
 import { ToNumber, ToString } from "@ahas/class-converter";
-import { AnyEntity, Loaded, RequiredEntityData, EntityDTO, QueryOrderMap } from "@mikro-orm/core";
+import {
+    AnyEntity,
+    Loaded,
+    RequiredEntityData,
+    EntityDTO,
+    QueryOrderMap,
+} from "@mikro-orm/core";
 import { AutoPath } from "@mikro-orm/core/typings";
 import deepmerge from "deepmerge";
 import { CrudParamTypes } from "./decorators";
@@ -12,7 +18,7 @@ export interface CrudOptions<
     T_CrudEntity extends AnyEntity<T_CrudEntity>,
     P extends string = never,
     T_CreateDTO = any,
-    T_UpdateDTO = any,
+    T_UpdateDTO = any
 > {
     name: T_CrudName;
     entity: new () => T_CrudEntity;
@@ -45,15 +51,21 @@ export class CrudSearchQuery<T_CrudEntity extends AnyEntity<T_CrudEntity>> {
     readonly limit?: number;
 
     toFilter(appendix?: Record<string, any>) {
-        const where: Record<string, any>  = {};
+        const where: Record<string, any> = {};
         if (this.search) {
             if (this.category) {
-                this.setSearchQuery(where, this.category, { $like: `%${this.search}%` });
+                this.setSearchQuery(where, this.category, {
+                    $like: `%${this.search}%`,
+                });
             } else if (this._options.filter) {
                 where.$or = [];
                 for (const column of this._options.filter) {
                     const q = {};
-                    where.$or.push(this.setSearchQuery(q, column as string, { $like: `%${this.search}%` }));
+                    where.$or.push(
+                        this.setSearchQuery(q, column as string, {
+                            $like: `%${this.search}%`,
+                        }),
+                    );
                 }
             }
         }
@@ -85,7 +97,10 @@ export class CrudSearchQuery<T_CrudEntity extends AnyEntity<T_CrudEntity>> {
     }
 }
 
-export type CrudSearchResult<T_CrudEntity extends AnyEntity<T_CrudEntity>, P extends string = never> = {
+export type CrudSearchResult<
+    T_CrudEntity extends AnyEntity<T_CrudEntity>,
+    P extends string = never
+> = {
     items: EntityDTO<Loaded<T_CrudEntity, P>>[];
     count: number;
 };
@@ -93,14 +108,13 @@ export type CrudSearchResult<T_CrudEntity extends AnyEntity<T_CrudEntity>, P ext
 export type CrudGetResult<
     T_CrudName extends string,
     T_CrudEntity extends AnyEntity<T_CrudEntity>,
-    P extends string = never,
-> = {
-    [key in T_CrudName]: Loaded<T_CrudEntity, P>;
-};
+    P extends string = never
+> = { [key in T_CrudName]: Loaded<T_CrudEntity, P> };
 
-export type CrudDTO<T_CrudName extends string, T_CrudEntity extends AnyEntity<T_CrudEntity>> = {
-    [key in T_CrudName]: RequiredEntityData<T_CrudEntity>;
-};
+export type CrudDTO<
+    T_CrudName extends string,
+    T_CrudEntity extends AnyEntity<T_CrudEntity>
+> = { [key in T_CrudName]: RequiredEntityData<T_CrudEntity> };
 
 export enum CrudHooks {
     SEARCH_QUERY = "search-query",
@@ -127,10 +141,6 @@ export interface CrudListenerMetadataArgs {
     readonly type: CrudHooks;
 }
 
-export type WhereQuery<T> = {
-    [key in keyof T & string]: any;
-};
+export type WhereQuery<T> = { [key in keyof T & string]: any };
 
-export type CrudParams = {
-    [key in CrudParamTypes]?: any;
-};
+export type CrudParams = { [key in CrudParamTypes]?: any };
