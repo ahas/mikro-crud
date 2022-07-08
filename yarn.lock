@@ -16,10 +16,10 @@
   resolved "https://registry.yarnpkg.com/@ahas/join-url/-/join-url-1.0.4.tgz#702a25175ca5d34f2593c306de8e0aaae8bb9990"
   integrity sha512-U75NMMXkoHe2sPLiDWjZ82G1URGBUHloZZqm2pySnTvpIBLSf5ffX/XuTeLvY1hS8AHwxLWhaRlqBnHoK0Zcdw==
 
-"@mikro-orm/core@^5.2.0":
-  version "5.2.0"
-  resolved "https://registry.yarnpkg.com/@mikro-orm/core/-/core-5.2.0.tgz#37df2e258dace97d52253d3c16f3d00549252735"
-  integrity sha512-4R2JE7NCRSPgvIAXLQFE+unvRMd8SrCQjs4fs62R5LqhRlbhS+FjY332dmXldq6iGoQ5JkuZhBKiSLV/2X12Mg==
+"@mikro-orm/core@^5.2.2":
+  version "5.2.2"
+  resolved "https://registry.yarnpkg.com/@mikro-orm/core/-/core-5.2.2.tgz#4b6220438f9d733b5337502d53ba1e114ab3aab2"
+  integrity sha512-n28tu5koNHroESqQasGp5TcCbnHutT4Hng78jYByt2dCd478BkXtWRn/IFOZYxT03vY7shQsepS4HVStJtlSTQ==
   dependencies:
     dotenv "16.0.1"
     escaya "0.0.61"
@@ -64,6 +64,13 @@
     "@nestjs/mapped-types" "1.0.1"
     lodash "4.17.21"
     path-to-regexp "3.2.0"
+
+"@nestjs/testing@^8.4.7":
+  version "8.4.7"
+  resolved "https://registry.yarnpkg.com/@nestjs/testing/-/testing-8.4.7.tgz#fe4f356c0e081e25fe8c899a65e91dd88947fd13"
+  integrity sha512-aedpeJFicTBeiTCvJWUG45WMMS53f5eu8t2fXsfjsU1t+WdDJqYcZyrlCzA4dL1B7MfbqaTURdvuVVHTmJO8ag==
+  dependencies:
+    tslib "2.4.0"
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"

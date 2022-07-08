@@ -22,7 +22,7 @@ type DynamicCrudModule<
         propertyName: CrudControllerMethods,
         decorator: (...args: any[]) => MethodDecorator,
         ...decoratorArgs: any[]
-    ): void;
+    ): DynamicCrudModule<T_CrudName, T_CrudEntity, P>;
 };
 
 @Module({})
@@ -68,7 +68,7 @@ export class CrudModule {
                 propertyName: CrudControllerMethods,
                 decorator: (...args: any[]) => MethodDecorator,
                 ...decoratorArgs: any[]
-            ): void {
+            ) {
                 if (propertyName !== "all") {
                     decorator(...decoratorArgs)(
                         controller.prototype,
@@ -85,6 +85,7 @@ export class CrudModule {
                         this.decorate(prop, decorator, ...decoratorArgs);
                     }
                 }
+                return this;
             },
         };
     }

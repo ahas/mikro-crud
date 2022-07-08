@@ -373,12 +373,12 @@ export class CrudService<
                     throw error;
                 }
                 const json = toPlainObject(data.body[this._options.name]);
-                assignEntity(em, entity, json);
-                // em.assign(entity, json, {
-                //     updateByPrimaryKey: false,
-                //     mergeObjects: true,
-                //     merge: true,
-                // });
+                // assignEntity(em, entity, json);
+                em.assign(entity, json, {
+                    updateByPrimaryKey: false,
+                    mergeObjects: true,
+                    merge: true,
+                });
                 hookArgs[CrudParamTypes.ENTITIES] = [entity];
                 entity =
                     (await this.callHook(em, CrudHooks.AFTER_UPDATE, {
