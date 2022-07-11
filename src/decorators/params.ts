@@ -15,6 +15,7 @@ export enum CrudParamTypes {
     BODY,
     FILES,
     FILE,
+    ENTITY,
     ENTITIES,
     REQUEST,
     RESPONSE,
@@ -46,22 +47,24 @@ export function assignMetadata<TParamType = any, TArgs = any>(
 }
 
 function createCrudParamDecorator(paramType: CrudParamTypes) {
-    return (data?: ParamData): ParameterDecorator => (target, key, index) => {
-        const args =
-            Reflect.getMetadata(CRUD_ARGS_METADATA, target.constructor, key) ||
-            {};
-        Reflect.defineMetadata(
-            CRUD_ARGS_METADATA,
-            assignMetadata<CrudParamTypes, Record<number, CrudParamMetadata>>(
-                args,
-                paramType,
-                index,
-                data,
-            ),
-            target.constructor,
-            key,
-        );
-    };
+    return (data?: ParamData): ParameterDecorator =>
+        (target, key, index) => {
+            const args =
+                Reflect.getMetadata(
+                    CRUD_ARGS_METADATA,
+                    target.constructor,
+                    key,
+                ) || {};
+            Reflect.defineMetadata(
+                CRUD_ARGS_METADATA,
+                assignMetadata<
+                    CrudParamTypes,
+                    Record<number, CrudParamMetadata>
+                >(args, paramType, index, data),
+                target.constructor,
+                key,
+            );
+        };
 }
 
 export const Query: () => ParameterDecorator = createCrudParamDecorator(
@@ -93,6 +96,9 @@ export const Res: () => ParameterDecorator = createCrudParamDecorator(
 );
 export const Entities: () => ParameterDecorator = createCrudParamDecorator(
     CrudParamTypes.ENTITIES,
+);
+export const Entity: () => ParameterDecorator = createCrudParamDecorator(
+    CrudParamTypes.ENTITY,
 );
 export const EM: () => ParameterDecorator = createCrudParamDecorator(
     CrudParamTypes.ENTITY_MANAGER,

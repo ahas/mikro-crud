@@ -24,7 +24,6 @@ import {
 } from "./crud.types";
 import { getMetadataStorage, MetadataStorage } from "./metadata-storage";
 import { CrudParamTypes } from "./decorators";
-import { Request } from "express";
 import { ModuleRef } from "@nestjs/core";
 import { toPlainObject } from "./crud.utils";
 
@@ -44,24 +43,29 @@ export class CrudService<
         private readonly orm: MikroORM,
         private readonly em: EntityManager,
         private moduleRef: ModuleRef,
-        @Inject("CRUD_OPTIONS") options: CrudOptions<T_CrudName, T_CrudEntity, P>,
+        @Inject("CRUD_OPTIONS")
+        options: CrudOptions<T_CrudName, T_CrudEntity, P>,
     ) {
         this._options = options;
         if (options.filter) {
-            this._populate = options.filter.filter((x) => String(x).indexOf(".") >= 0);
+            this._populate = options.filter.filter(
+                (x) => String(x).indexOf(".") >= 0,
+            );
         } else {
             this._populate = options.populate || false;
         }
         this._options.filter = options.filter;
         this._options.offset = 0;
         this._options.limit = 300;
-        this._metadata = this.em.getMetadata().find<T_CrudEntity>(this._options.entity.name)!;
+        this._metadata = this.em
+            .getMetadata()
+            .find<T_CrudEntity>(this._options.entity.name)!;
         this._metadataStorage = getMetadataStorage();
     }
 
     async search(data: {
-        req: Request;
-        res: Response;
+        req: Express.Request;
+        res: Express.Response;
         query: CrudSearchQuery<T_CrudEntity>;
         params: any[];
     }): Promise<CrudSearchResult<T_CrudEntity, P>> {
@@ -84,7 +88,10 @@ export class CrudService<
 
             if (data.query.sort) {
                 options.orderBy = {
-                    [data.query.sort]: data.query.order?.toLowerCase() === "asc" ? QueryOrder.ASC : QueryOrder.DESC,
+                    [data.query.sort]:
+                        data.query.order?.toLowerCase() === "asc"
+                            ? QueryOrder.ASC
+                            : QueryOrder.DESC,
                 } as QueryOrderMap<T_CrudEntity>;
             } else {
                 options.orderBy = {
@@ -157,9 +164,17 @@ export class CrudService<
 
     private async findOne(
         em: EntityManager,
-        data: Partial<{ req: Request; res: Response; query: any; params: PrimaryKeys<T_CrudEntity> }>,
+        data: Partial<{
+            req: Express.Request;
+            res: Express.Response;
+            query: any;
+            params: PrimaryKeys<T_CrudEntity>;
+        }>,
     ) {
-        const options: FindOneOptions<T_CrudEntity, P> = { populate: true, cache: false };
+        const options: FindOneOptions<T_CrudEntity, P> = {
+            populate: true,
+            cache: false,
+        };
         const entityName = this._metadata.name!;
         const primaryKeys = this._metadata.primaryKeys;
         const hookArgs = {
@@ -184,9 +199,13 @@ export class CrudService<
                 ...hookArgs,
             })) as WhereQuery<T_CrudEntity>) || where;
 
-        let entity = await em.findOne<T_CrudEntity, P>(entityName, where as FilterQuery<T_CrudEntity>, options);
+        let entity = await em.findOne<T_CrudEntity, P>(
+            entityName,
+            where as FilterQuery<T_CrudEntity>,
+            options,
+        );
         hookArgs[CrudParamTypes.FILTER] = where;
-        hookArgs[CrudParamTypes.ENTITIES] = [entity];
+        this.setEntity(hookArgs, [entity]);
 
         entity =
             (await this.callHook(em, CrudHooks.AFTER_GET, {
@@ -197,8 +216,8 @@ export class CrudService<
     }
 
     async get(data: {
-        req: Request;
-        res: Response;
+        req: Express.Request;
+        res: Express.Response;
         query: any;
         params: PrimaryKeys<T_CrudEntity>;
     }): Promise<CrudGetResult<T_CrudName, T_CrudEntity, P>> {
@@ -239,9 +258,13 @@ export class CrudService<
                     ...hookArgs,
                 })) as WhereQuery<T_CrudEntity>) || where;
 
-            let entity = await em.findOne<T_CrudEntity, P>(entityName, where as FilterQuery<T_CrudEntity>, options);
+            let entity = await em.findOne<T_CrudEntity, P>(
+                entityName,
+                where as FilterQuery<T_CrudEntity>,
+                options,
+            );
             hookArgs[CrudParamTypes.FILTER] = where;
-            hookArgs[CrudParamTypes.ENTITIES] = [entity];
+            this.setEntity(hookArgs, [entity]);
             entity =
                 (await this.callHook(em, CrudHooks.AFTER_GET, {
                     ...hookArgs,
@@ -250,11 +273,10 @@ export class CrudService<
             await em.flush();
             await em.commit();
 
-            hookArgs[CrudParamTypes.ENTITIES] = [entity];
-            const json  =
-                (await this.callHook(em, CrudHooks.AFTER_VIEW, {
-                    ...hookArgs,
-                })) || { [this._options.name]: wrap(entity).toPOJO() };
+            this.setEntity(hookArgs, [entity]);
+            const json = (await this.callHook(em, CrudHooks.AFTER_VIEW, {
+                ...hookArgs,
+            })) || { [this._options.name]: wrap(entity).toPOJO() };
 
             return json as CrudGetResult<T_CrudName, T_CrudEntity, P>;
         } catch (e) {
@@ -264,8 +286,8 @@ export class CrudService<
     }
 
     async create(data: {
-        req: Request;
-        res: Response;
+        req: Express.Request;
+        res: Express.Response;
         params: any;
         body: CrudDTO<T_CrudName, T_CrudEntity> | T_CrudEntity[];
         file: Express.Multer.File;
@@ -294,18 +316,28 @@ export class CrudService<
 
             let entities: T_CrudEntity[] = [];
             if (Array.isArray(data.body)) {
-                entities.push(...data.body.map((x) => em.create<T_CrudEntity>(entityName, x)));
+                entities.push(
+                    ...data.body.map((x) =>
+                        em.create<T_CrudEntity>(entityName, x),
+                    ),
+                );
             } else {
-                entities.push(em.create<T_CrudEntity>(entityName, data.body[this._options.name]));
+                entities.push(
+                    em.create<T_CrudEntity>(
+                        entityName,
+                        data.body[this._options.name],
+                    ),
+                );
             }
-            hookArgs[CrudParamTypes.ENTITIES] = entities;
+
+            this.setEntity(hookArgs, entities);
             entities =
                 (await this.callHook(em, CrudHooks.AFTER_CREATE, {
                     ...hookArgs,
                 })) || entities;
             entities = Array.isArray(entities) ? entities : [entities];
 
-            hookArgs[CrudParamTypes.ENTITIES] = entities;
+            this.setEntity(hookArgs, entities);
             entities =
                 (await this.callHook(em, CrudHooks.BEFORE_FLUSH, {
                     ...hookArgs,
@@ -317,14 +349,15 @@ export class CrudService<
             }
             await em.flush();
 
-            hookArgs[CrudParamTypes.ENTITIES] = entities;
+            this.setEntity(hookArgs, entities);
             entities =
                 (await this.callHook(em, CrudHooks.AFTER_FLUSH, {
                     ...hookArgs,
                 })) || entities;
             entities = Array.isArray(entities) ? entities : [entities];
 
-            const result: PrimaryKeys<T_CrudEntity> = {} as PrimaryKeys<T_CrudEntity>;
+            const result: PrimaryKeys<T_CrudEntity> =
+                {} as PrimaryKeys<T_CrudEntity>;
 
             if (entities.length === 1) {
                 for (const pk of primaryKeys) {
@@ -337,6 +370,7 @@ export class CrudService<
             }
 
             await em.commit();
+
             return result;
         } catch (e) {
             await em.rollback();
@@ -345,8 +379,8 @@ export class CrudService<
     }
 
     async update(data: {
-        req: Request;
-        res: Response;
+        req: Express.Request;
+        res: Express.Response;
         params: PrimaryKeys<T_CrudEntity>;
         body: CrudDTO<T_CrudName, T_CrudEntity>;
         file: Express.Multer.File;
@@ -387,20 +421,20 @@ export class CrudService<
                     mergeObjects: true,
                     merge: true,
                 });
-                hookArgs[CrudParamTypes.ENTITIES] = [entity];
+                this.setEntity(hookArgs, [entity]);
                 entity =
                     (await this.callHook(em, CrudHooks.AFTER_UPDATE, {
                         ...hookArgs,
                     })) || entity;
 
-                hookArgs[CrudParamTypes.ENTITIES] = [entity];
+                this.setEntity(hookArgs, [entity]);
                 entity =
                     (await this.callHook(em, CrudHooks.BEFORE_FLUSH, {
                         ...hookArgs,
                     })) || entity;
                 await em.persistAndFlush(entity);
 
-                hookArgs[CrudParamTypes.ENTITIES] = [entity];
+                this.setEntity(hookArgs, [entity]);
                 entity =
                     (await this.callHook(em, CrudHooks.AFTER_FLUSH, {
                         ...hookArgs,
@@ -413,7 +447,11 @@ export class CrudService<
         }
     }
 
-    async delete(data: { req: Request; res: Response; params: PrimaryKeys<T_CrudEntity> }): Promise<void> {
+    async delete(data: {
+        req: Express.Request;
+        res: Express.Response;
+        params: PrimaryKeys<T_CrudEntity>;
+    }): Promise<void> {
         const em = this.orm.em.fork();
         await em.begin();
 
@@ -428,14 +466,14 @@ export class CrudService<
 
             let entity = await this.findOne(em, data);
             if (entity) {
-                hookArgs[CrudParamTypes.ENTITIES] = [entity];
+                this.setEntity(hookArgs, [entity]);
                 entity =
                     (await this.callHook(em, CrudHooks.BEFORE_DELETE, {
                         ...hookArgs,
                     })) || entity;
                 await em.remove<T_CrudEntity>(entity).flush();
 
-                hookArgs[CrudParamTypes.ENTITIES] = [entity];
+                this.setEntity(hookArgs, [entity]);
                 await this.callHook(em, CrudHooks.AFTER_DELETE, {
                     ...hookArgs,
                 });
@@ -453,6 +491,16 @@ export class CrudService<
         args: { [key in CrudParamTypes]?: any },
     ): T | Promise<T> | undefined | Promise<undefined> {
         args[CrudParamTypes.ENTITY_MANAGER] = em;
-        return this._metadataStorage.emit(this.moduleRef, this._options.path || this._options.name, eventType, args);
+        return this._metadataStorage.emit(
+            this.moduleRef,
+            this._options.path || this._options.name,
+            eventType,
+            args,
+        );
+    }
+
+    setEntity(args: any, entities: any[]) {
+        args[CrudParamTypes.ENTITY] = entities[0];
+        args[CrudParamTypes.ENTITIES] = entities;
     }
 }

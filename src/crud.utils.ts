@@ -1,4 +1,10 @@
-import { Collection, Connection, EntityManager, EntityMetadata, IDatabaseDriver } from "@mikro-orm/core";
+import {
+    Collection,
+    Connection,
+    EntityManager,
+    EntityMetadata,
+    IDatabaseDriver,
+} from "@mikro-orm/core";
 
 export function isArray(obj: any) {
     return obj && (Array.isArray(obj) || obj instanceof Collection);
@@ -28,7 +34,11 @@ export function isConvertableObject(obj: any): boolean {
 }
 
 export function getProperties(obj: any): string[] {
-    return obj.__helper?.__meta.props.filter((x) => !x.hidden).map((x) => x.name) || Object.keys(obj);
+    return (
+        obj.__helper?.__meta.props
+            .filter((x) => !x.hidden)
+            .map((x) => x.name) || Object.keys(obj)
+    );
 }
 
 export function toPlainObject(obj: any): object {
@@ -64,7 +74,11 @@ export function toPlainArray(arr: any): any[] {
     return ret;
 }
 
-export function assignEntity(em: EntityManager<IDatabaseDriver<Connection>>, target: any, data: any) {
+export function assignEntity(
+    em: EntityManager<IDatabaseDriver<Connection>>,
+    target: any,
+    data: any,
+) {
     for (const prop in data) {
         if (isConvertableObject(target[prop])) {
             assignEntity(em, target[prop], data[prop]);
@@ -76,7 +90,12 @@ export function assignEntity(em: EntityManager<IDatabaseDriver<Connection>>, tar
     }
 }
 
-export function assignCollection(em: EntityManager<IDatabaseDriver<Connection>>, target: any, data: any[], prop: string) {
+export function assignCollection(
+    em: EntityManager<IDatabaseDriver<Connection>>,
+    target: any,
+    data: any[],
+    prop: string,
+) {
     const collection: Collection<any> = target[prop];
     let i = 0;
     for (const item of data[prop]) {

@@ -16,7 +16,7 @@ type CrudControllerMethods = "all" | typeof CRUD_CONTROLLER_METHODS[number];
 type DynamicCrudModule<
     T_CrudName extends string,
     T_CrudEntity extends AnyEntity<T_CrudEntity>,
-    P extends string = never
+    P extends string = never,
 > = DynamicModule & {
     decorate(
         propertyName: CrudControllerMethods,
@@ -32,7 +32,7 @@ export class CrudModule {
         T_UpdateDTO extends CrudDTO<T_CrudName, T_CrudEntity>,
         T_CrudName extends string,
         T_CrudEntity extends AnyEntity<T_CrudEntity>,
-        P extends string = never
+        P extends string = never,
     >(
         options: CrudOptions<
             T_CrudName,

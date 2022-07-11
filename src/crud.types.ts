@@ -18,7 +18,7 @@ export interface CrudOptions<
     T_CrudEntity extends AnyEntity<T_CrudEntity>,
     P extends string = never,
     T_CreateDTO = any,
-    T_UpdateDTO = any
+    T_UpdateDTO = any,
 > {
     name: T_CrudName;
     entity: new () => T_CrudEntity;
@@ -99,7 +99,7 @@ export class CrudSearchQuery<T_CrudEntity extends AnyEntity<T_CrudEntity>> {
 
 export type CrudSearchResult<
     T_CrudEntity extends AnyEntity<T_CrudEntity>,
-    P extends string = never
+    P extends string = never,
 > = {
     items: EntityDTO<Loaded<T_CrudEntity, P>>[];
     count: number;
@@ -108,12 +108,12 @@ export type CrudSearchResult<
 export type CrudGetResult<
     T_CrudName extends string,
     T_CrudEntity extends AnyEntity<T_CrudEntity>,
-    P extends string = never
+    P extends string = never,
 > = { [key in T_CrudName]: Loaded<T_CrudEntity, P> };
 
 export type CrudDTO<
     T_CrudName extends string,
-    T_CrudEntity extends AnyEntity<T_CrudEntity>
+    T_CrudEntity extends AnyEntity<T_CrudEntity>,
 > = { [key in T_CrudName]: RequiredEntityData<T_CrudEntity> };
 
 export enum CrudHooks {

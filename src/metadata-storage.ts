@@ -36,14 +36,20 @@ export class MetadataStorage {
 
         this.listeners.get(name)?.forEach((x) => {
             if (x.type === type) {
-                const metadata = Reflect.getMetadata(CRUD_ARGS_METADATA, x.target.constructor, x.propertyName);
+                const metadata = Reflect.getMetadata(
+                    CRUD_ARGS_METADATA,
+                    x.target.constructor,
+                    x.propertyName,
+                );
                 const args: any[] = [];
                 for (const key in metadata) {
                     const m = metadata[key];
                     args[m.index] = params[m.type];
                 }
                 const hook = x.target[x.propertyName];
-                const service = moduleRef.get(x.target.constructor, { strict: false });
+                const service = moduleRef.get(x.target.constructor, {
+                    strict: false,
+                });
 
                 returnValue = hook.apply(service, args) || returnValue;
             }
