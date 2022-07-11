@@ -26,7 +26,7 @@ import { getMetadataStorage, MetadataStorage } from "./metadata-storage";
 import { CrudParamTypes } from "./decorators";
 import { Request } from "express";
 import { ModuleRef } from "@nestjs/core";
-import { assignEntity, toPlainObject } from "./crud.utils";
+import { toPlainObject } from "./crud.utils";
 
 export type PrimaryKeys<T> = Record<keyof T & string, any>;
 @Injectable()
@@ -61,6 +61,7 @@ export class CrudService<
 
     async search(data: {
         req: Request;
+        res: Response;
         query: CrudSearchQuery<T_CrudEntity>;
         params: any[];
     }): Promise<CrudSearchResult<T_CrudEntity, P>> {
@@ -94,6 +95,7 @@ export class CrudService<
             const hookArgs = {
                 [CrudParamTypes.KEYS]: primaryKeys,
                 [CrudParamTypes.REQUEST]: data.req,
+                [CrudParamTypes.RESPONSE]: data.res,
                 [CrudParamTypes.QUERY]: data.query,
                 [CrudParamTypes.PARAMS]: data.params,
                 [CrudParamTypes.OPTIONS]: options,
@@ -155,13 +157,14 @@ export class CrudService<
 
     private async findOne(
         em: EntityManager,
-        data: Partial<{ req: Request; query: any; params: PrimaryKeys<T_CrudEntity> }>,
+        data: Partial<{ req: Request; res: Response; query: any; params: PrimaryKeys<T_CrudEntity> }>,
     ) {
         const options: FindOneOptions<T_CrudEntity, P> = { populate: true, cache: false };
         const entityName = this._metadata.name!;
         const primaryKeys = this._metadata.primaryKeys;
         const hookArgs = {
             [CrudParamTypes.REQUEST]: data.req,
+            [CrudParamTypes.RESPONSE]: data.res,
             [CrudParamTypes.PARAMS]: data.params,
             [CrudParamTypes.QUERY]: data.query,
             [CrudParamTypes.KEYS]: primaryKeys,
@@ -195,6 +198,7 @@ export class CrudService<
 
     async get(data: {
         req: Request;
+        res: Response;
         query: any;
         params: PrimaryKeys<T_CrudEntity>;
     }): Promise<CrudGetResult<T_CrudName, T_CrudEntity, P>> {
@@ -210,6 +214,7 @@ export class CrudService<
             const hookArgs = {
                 [CrudParamTypes.KEYS]: primaryKeys,
                 [CrudParamTypes.REQUEST]: data.req,
+                [CrudParamTypes.RESPONSE]: data.res,
                 [CrudParamTypes.PARAMS]: data.params,
                 [CrudParamTypes.QUERY]: data.query,
                 [CrudParamTypes.FILTER]: where,
@@ -260,6 +265,7 @@ export class CrudService<
 
     async create(data: {
         req: Request;
+        res: Response;
         params: any;
         body: CrudDTO<T_CrudName, T_CrudEntity> | T_CrudEntity[];
         file: Express.Multer.File;
@@ -274,6 +280,7 @@ export class CrudService<
             const hookArgs = {
                 [CrudParamTypes.KEYS]: primaryKeys,
                 [CrudParamTypes.REQUEST]: data.req,
+                [CrudParamTypes.RESPONSE]: data.res,
                 [CrudParamTypes.PARAMS]: data.params,
                 [CrudParamTypes.BODY]: data.body,
                 [CrudParamTypes.FILE]: data.file,
@@ -339,6 +346,7 @@ export class CrudService<
 
     async update(data: {
         req: Request;
+        res: Response;
         params: PrimaryKeys<T_CrudEntity>;
         body: CrudDTO<T_CrudName, T_CrudEntity>;
         file: Express.Multer.File;
@@ -352,6 +360,7 @@ export class CrudService<
             const hookArgs = {
                 [CrudParamTypes.KEYS]: primaryKeys,
                 [CrudParamTypes.REQUEST]: data.req,
+                [CrudParamTypes.RESPONSE]: data.res,
                 [CrudParamTypes.PARAMS]: data.params,
                 [CrudParamTypes.BODY]: data.body,
                 [CrudParamTypes.FILE]: data.file,
@@ -404,7 +413,7 @@ export class CrudService<
         }
     }
 
-    async delete(data: { req: Request; params: PrimaryKeys<T_CrudEntity> }): Promise<void> {
+    async delete(data: { req: Request; res: Response; params: PrimaryKeys<T_CrudEntity> }): Promise<void> {
         const em = this.orm.em.fork();
         await em.begin();
 
@@ -413,6 +422,7 @@ export class CrudService<
             const hookArgs = {
                 [CrudParamTypes.KEYS]: primaryKeys,
                 [CrudParamTypes.REQUEST]: data.req,
+                [CrudParamTypes.RESPONSE]: data.res,
                 [CrudParamTypes.PARAMS]: data.params,
             };
 

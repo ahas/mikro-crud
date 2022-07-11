@@ -17,6 +17,7 @@ export enum CrudParamTypes {
     FILE,
     ENTITIES,
     REQUEST,
+    RESPONSE,
 }
 
 export const CRUD_ARGS_METADATA = "__crudArguments__";
@@ -86,6 +87,9 @@ export const Files: () => ParameterDecorator = createCrudParamDecorator(
 );
 export const Req: () => ParameterDecorator = createCrudParamDecorator(
     CrudParamTypes.REQUEST,
+);
+export const Res: () => ParameterDecorator = createCrudParamDecorator(
+    CrudParamTypes.RESPONSE,
 );
 export const Entities: () => ParameterDecorator = createCrudParamDecorator(
     CrudParamTypes.ENTITIES,
