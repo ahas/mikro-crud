@@ -309,25 +309,26 @@ export class CrudService<
                 [CrudParamTypes.FILES]: data.files,
             };
             const entityName = this._metadata.name!;
-            data =
+            let entities: T_CrudEntity[] =
                 (await this.callHook(em, CrudHooks.BEFORE_CREATE, {
                     ...hookArgs,
-                })) || data;
+                })) || [];
 
-            let entities: T_CrudEntity[] = [];
-            if (Array.isArray(data.body)) {
-                entities.push(
-                    ...data.body.map((x) =>
-                        em.create<T_CrudEntity>(entityName, x),
-                    ),
-                );
-            } else {
-                entities.push(
-                    em.create<T_CrudEntity>(
-                        entityName,
-                        data.body[this._options.name],
-                    ),
-                );
+            if (entities.length === 0) {
+                if (Array.isArray(data.body)) {
+                    entities.push(
+                        ...data.body.map((x) =>
+                            em.create<T_CrudEntity>(entityName, x),
+                        ),
+                    );
+                } else {
+                    entities.push(
+                        em.create<T_CrudEntity>(
+                            entityName,
+                            data.body[this._options.name],
+                        ),
+                    );
+                }
             }
 
             this.setEntity(hookArgs, entities);
