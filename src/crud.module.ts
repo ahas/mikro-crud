@@ -67,22 +67,17 @@ export class CrudModule {
             decorate(
                 propertyName: CrudControllerMethods,
                 decorator: (...args: any[]) => MethodDecorator,
-                ...decoratorArgs: any[]
             ) {
                 if (propertyName !== "all") {
-                    decorator(...decoratorArgs)(
-                        controller.prototype,
-                        propertyName,
-                        {
-                            value: controller.prototype[propertyName],
-                            writable: true,
-                            enumerable: false,
-                            configurable: true,
-                        },
-                    );
+                    decorator(controller.prototype, propertyName, {
+                        value: controller.prototype[propertyName],
+                        writable: true,
+                        enumerable: false,
+                        configurable: true,
+                    });
                 } else {
                     for (const prop of CRUD_CONTROLLER_METHODS) {
-                        this.decorate(prop, decorator, ...decoratorArgs);
+                        this.decorate(prop, decorator);
                     }
                 }
                 return this;
