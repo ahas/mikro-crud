@@ -313,6 +313,7 @@ export class CrudService<
                 (await this.callHook(em, CrudHooks.BEFORE_CREATE, {
                     ...hookArgs,
                 })) || [];
+            entities = Array.isArray(entities) ? entities : [entities];
 
             if (entities.length === 0) {
                 if (Array.isArray(data.body)) {
@@ -420,7 +421,6 @@ export class CrudService<
                 em.assign(entity, json, {
                     updateByPrimaryKey: false,
                     mergeObjects: true,
-                    merge: true,
                 });
                 this.setEntity(hookArgs, [entity]);
                 entity =

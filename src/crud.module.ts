@@ -56,10 +56,7 @@ export class CrudModule {
         return {
             module: CrudModule,
             providers: [
-                {
-                    provide: "CRUD_OPTIONS",
-                    useValue: options,
-                },
+                { provide: "CRUD_OPTIONS", useValue: options },
                 CrudService,
             ],
             controllers: [controller],
