@@ -16,7 +16,7 @@ import {
     UploadedFile,
     UploadedFiles,
 } from "@nestjs/common";
-import { CrudService, PrimaryKeys } from "./crud.service";
+import { CrudService } from "./crud.service";
 import joinUrl from "@ahas/join-url";
 import { plainToInstance } from "class-transformer";
 import { ApiBody, ApiOperation, ApiParam } from "@nestjs/swagger";
@@ -25,6 +25,7 @@ import {
     CrudSearchQuery,
     CrudDTO,
     CrudOptions,
+    PrimaryKeys,
 } from "./crud.types";
 import { Request, Response } from "express";
 

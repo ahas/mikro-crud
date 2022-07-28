@@ -1,6 +1,7 @@
 import { ModuleRef } from "@nestjs/core";
+import { CrudParamTypes } from "./decorators";
 import { CrudHooks, CrudListenerMetadataArgs } from "./crud.types";
-import { CrudParamTypes, CRUD_ARGS_METADATA } from "./decorators";
+import { CRUD_ARGS_METADATA } from "./decorators";
 
 export function getMetadataStorage(): MetadataStorage {
     if (!global.crudMetadataStorage) {

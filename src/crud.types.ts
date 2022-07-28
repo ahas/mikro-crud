@@ -7,8 +7,10 @@ import {
     QueryOrderMap,
 } from "@mikro-orm/core";
 import { AutoPath } from "@mikro-orm/core/typings";
-import deepmerge from "deepmerge";
 import { CrudParamTypes } from "./decorators";
+import deepmerge from "deepmerge";
+
+export type PrimaryKeys<T> = Record<keyof T & string, any>;
 
 export class CrudCreateDTO<T> {}
 export class CrudUpdateDTO<T> {}
@@ -133,6 +135,14 @@ export enum CrudHooks {
     AFTER_DELETE = "after-delete",
     BEFORE_FLUSH = "before-flush",
     AFTER_FLUSH = "after-flush",
+    BEFORE_PERSIST = "before-persist",
+    AFTER_PERSIST = "after-persist",
+    BEFORE_COMMIT = "before-commit",
+    AFTER_COMMIT = "after-commit",
+    BEFORE_ROLLBACK = "before-rollback",
+    AFTER_ROLLBACK = "after-rollback",
+    BEFORE_UPSERT = "before-upsert",
+    AFTER_UPSERT = "after-upsert",
 }
 
 export interface CrudListenerMetadataArgs {

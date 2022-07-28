@@ -1,10 +1,5 @@
 import { ParamData, PipeTransform, Type } from "@nestjs/common";
 
-export interface CrudParamMetadata {
-    index: number;
-    data?: ParamData;
-}
-
 export enum CrudParamTypes {
     ENTITY_MANAGER,
     QUERY,
@@ -19,6 +14,11 @@ export enum CrudParamTypes {
     ENTITIES,
     REQUEST,
     RESPONSE,
+}
+
+export interface CrudParamMetadata {
+    index: number;
+    data?: ParamData;
 }
 
 export const CRUD_ARGS_METADATA = "__crudArguments__";

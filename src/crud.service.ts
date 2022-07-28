@@ -10,7 +10,7 @@ import {
     QueryOrderMap,
     wrap,
 } from "@mikro-orm/core";
-import { AutoPath } from "@mikro-orm/core/typings";
+import { AutoPath, Loaded } from "@mikro-orm/core/typings";
 import { EntityManager } from "@mikro-orm/core";
 import { Inject, Injectable } from "@nestjs/common";
 import {
@@ -20,14 +20,14 @@ import {
     CrudOptions,
     CrudSearchQuery,
     CrudSearchResult,
+    PrimaryKeys,
     WhereQuery,
 } from "./crud.types";
-import { getMetadataStorage, MetadataStorage } from "./metadata-storage";
-import { CrudParamTypes } from "./decorators";
 import { ModuleRef } from "@nestjs/core";
 import { toPlainObject } from "./crud.utils";
+import { CrudArgs } from "./crud.args";
+import { CrudParamTypes } from "./decorators";
 
-export type PrimaryKeys<T> = Record<keyof T & string, any>;
 @Injectable()
 export class CrudService<
     T_CrudName extends string,
@@ -35,9 +35,8 @@ export class CrudService<
     P extends string = never,
 > {
     private _metadata: EntityMetadata<T_CrudEntity>;
-    private _options: CrudOptions<T_CrudName, T_CrudEntity, P>;
+    private options: CrudOptions<T_CrudName, T_CrudEntity, P>;
     private _populate: AutoPath<T_CrudEntity, P>[] | boolean;
-    private _metadataStorage: MetadataStorage;
 
     constructor(
         private readonly orm: MikroORM,
@@ -46,7 +45,7 @@ export class CrudService<
         @Inject("CRUD_OPTIONS")
         options: CrudOptions<T_CrudName, T_CrudEntity, P>,
     ) {
-        this._options = options;
+        this.options = options;
         if (options.filter) {
             this._populate = options.filter.filter(
                 (x) => String(x).indexOf(".") >= 0,
@@ -54,13 +53,12 @@ export class CrudService<
         } else {
             this._populate = options.populate || false;
         }
-        this._options.filter = options.filter;
-        this._options.offset = 0;
-        this._options.limit = 300;
+        this.options.filter = options.filter;
+        this.options.offset = 0;
+        this.options.limit = 300;
         this._metadata = this.em
             .getMetadata()
-            .find<T_CrudEntity>(this._options.entity.name)!;
-        this._metadataStorage = getMetadataStorage();
+            .find<T_CrudEntity>(this.options.entity.name)!;
     }
 
     async search(data: {
@@ -72,46 +70,53 @@ export class CrudService<
         const em = this.orm.em.fork();
         await em.begin();
 
+        const primaryKeys = this._metadata.primaryKeys;
+        const entityName = this._metadata.name!;
+        const hArgs = new CrudArgs<T_CrudName, T_CrudEntity, P>(
+            em,
+            this.moduleRef,
+            this.options,
+            {
+                [CrudParamTypes.KEYS]: primaryKeys,
+                [CrudParamTypes.REQUEST]: data.req,
+                [CrudParamTypes.RESPONSE]: data.res,
+                [CrudParamTypes.QUERY]: data.query,
+                [CrudParamTypes.PARAMS]: data.params,
+                [CrudParamTypes.OPTIONS]: {
+                    populate: this._populate,
+                    offset: data.query.offset || this.options.offset,
+                    flags: [QueryFlag.PAGINATE],
+                },
+            },
+        );
+
         try {
-            const primaryKeys = this._metadata.primaryKeys;
-            const options: FindOptions<T_CrudEntity, P> = {
-                populate: this._populate,
-                offset: data.query.offset || this._options.offset,
-                flags: [QueryFlag.PAGINATE],
-            };
+            const findOptions = hArgs.data[
+                CrudParamTypes.OPTIONS
+            ] as FindOptions<T_CrudEntity>;
 
             if (data.query.limit) {
-                options.limit = data.query.limit;
-            } else if (this._options.limit !== Infinity) {
-                options.limit = this._options.limit;
+                findOptions.limit = data.query.limit;
+            } else if (this.options.limit !== Infinity) {
+                findOptions.limit = this.options.limit;
             }
 
             if (data.query.sort) {
-                options.orderBy = {
+                hArgs.data[CrudParamTypes.OPTIONS].orderBy = {
                     [data.query.sort]:
                         data.query.order?.toLowerCase() === "asc"
                             ? QueryOrder.ASC
                             : QueryOrder.DESC,
                 } as QueryOrderMap<T_CrudEntity>;
             } else {
-                options.orderBy = {
+                hArgs.data[CrudParamTypes.OPTIONS].orderBy = {
                     [this._metadata.primaryKeys[0]]: QueryOrder.DESC,
                 } as QueryOrderMap<T_CrudEntity>;
             }
 
-            const hookArgs = {
-                [CrudParamTypes.KEYS]: primaryKeys,
-                [CrudParamTypes.REQUEST]: data.req,
-                [CrudParamTypes.RESPONSE]: data.res,
-                [CrudParamTypes.QUERY]: data.query,
-                [CrudParamTypes.PARAMS]: data.params,
-                [CrudParamTypes.OPTIONS]: options,
-            };
-            const entityName = this._metadata.name!;
-
             let appendix = {};
-            if (this._options.filter) {
-                appendix = this._options.filter.reduce((a, b) => {
+            if (this.options.filter) {
+                appendix = this.options.filter.reduce((a, b) => {
                     if (b in data.query) {
                         a[b] = data.query[b];
                     }
@@ -119,45 +124,41 @@ export class CrudService<
                 }, {} as any);
             }
 
-            let where: Record<string, any> = data.query.toFilter(appendix);
-            hookArgs[CrudParamTypes.FILTER] = where;
+            hArgs.data[CrudParamTypes.FILTER] = data.query.toFilter(
+                appendix,
+            ) as WhereQuery<T_CrudEntity>;
 
-            where =
-                (await this.callHook(em, CrudHooks.SEARCH_QUERY, {
-                    ...hookArgs,
-                })) || where;
-
-            hookArgs[CrudParamTypes.FILTER] = where;
-            where =
-                (await this.callHook(em, CrudHooks.BEFORE_SEARCH, {
-                    ...hookArgs,
-                })) || where;
-            hookArgs[CrudParamTypes.FILTER] = where;
-
-            const result = await em.findAndCount<T_CrudEntity, P>(
+            await hArgs.exec(CrudHooks.SEARCH_QUERY, CrudParamTypes.FILTER);
+            await hArgs.exec(CrudHooks.BEFORE_SEARCH, CrudParamTypes.FILTER);
+            const ret = await em.findAndCount<T_CrudEntity, P>(
                 entityName,
-                where as FilterQuery<T_CrudEntity>,
-                options,
+                hArgs.data[CrudParamTypes.FILTER] as FilterQuery<T_CrudEntity>,
+                hArgs.data[CrudParamTypes.OPTIONS] as FindOptions<
+                    T_CrudEntity,
+                    P
+                >,
             );
-            hookArgs[CrudParamTypes.FILTER] = {
-                items: result[0],
-                count: result[1],
-            };
+            ret[0] = await hArgs.call(CrudHooks.AFTER_SEARCH, ret[0]);
+            ret[0] = await hArgs.call(CrudHooks.BEFORE_PERSIST, ret[0]);
+            await em.persist(ret[0]);
+            ret[0] = await hArgs.call(CrudHooks.AFTER_PERSIST, ret[0]);
 
-            result[0] =
-                (await this.callHook(em, CrudHooks.AFTER_SEARCH, {
-                    ...hookArgs,
-                })) || result[0];
-
+            ret[0] = await hArgs.call(CrudHooks.BEFORE_FLUSH, ret[0]);
             await em.flush();
+            await hArgs.call(CrudHooks.AFTER_FLUSH);
+
+            await hArgs.call(CrudHooks.BEFORE_COMMIT);
             await em.commit();
+            await hArgs.call(CrudHooks.AFTER_COMMIT);
 
             return {
-                items: result[0].map((x) => wrap(x).toPOJO()),
-                count: result[1],
+                items: ret[0].map((x) => wrap(x).toPOJO()),
+                count: ret[1],
             };
         } catch (e) {
+            await hArgs.call(CrudHooks.BEFORE_ROLLBACK);
             await em.rollback();
+            await hArgs.call(CrudHooks.AFTER_ROLLBACK);
             throw e;
         }
     }
@@ -177,42 +178,38 @@ export class CrudService<
         };
         const entityName = this._metadata.name!;
         const primaryKeys = this._metadata.primaryKeys;
-        const hookArgs = {
+        const hArgs = new CrudArgs(em, this.moduleRef, this.options, {
             [CrudParamTypes.REQUEST]: data.req,
             [CrudParamTypes.RESPONSE]: data.res,
             [CrudParamTypes.PARAMS]: data.params,
             [CrudParamTypes.QUERY]: data.query,
             [CrudParamTypes.KEYS]: primaryKeys,
             [CrudParamTypes.OPTIONS]: options,
-        };
-        let where = ((await this.callHook(em, CrudHooks.GET_QUERY, {
-            ...hookArgs,
-        })) || {}) as WhereQuery<T_CrudEntity>;
+        });
+
+        let where = await hArgs.exec<WhereQuery<T_CrudEntity>>(
+            CrudHooks.GET_QUERY,
+            CrudParamTypes.FILTER,
+        );
 
         for (const pk of primaryKeys) {
             where[pk] = data.params[pk];
         }
 
-        hookArgs[CrudParamTypes.FILTER] = where;
-        where =
-            ((await this.callHook(em, CrudHooks.BEFORE_GET, {
-                ...hookArgs,
-            })) as WhereQuery<T_CrudEntity>) || where;
+        hArgs.data[CrudParamTypes.FILTER] = where;
+        where = await hArgs.exec(CrudHooks.BEFORE_GET, CrudParamTypes.FILTER);
 
         let entity = await em.findOne<T_CrudEntity, P>(
             entityName,
             where as FilterQuery<T_CrudEntity>,
             options,
         );
-        hookArgs[CrudParamTypes.FILTER] = where;
-        this.setEntity(hookArgs, [entity]);
-
-        entity =
-            (await this.callHook(em, CrudHooks.AFTER_GET, {
-                ...hookArgs,
-            })) || entity;
-
-        return entity;
+        hArgs.data[CrudParamTypes.FILTER] = where;
+        hArgs.setEntity(entity);
+        return (await hArgs.exec(
+            CrudHooks.AFTER_GET,
+            CrudParamTypes.ENTITY,
+        )) as Loaded<T_CrudEntity, P>;
     }
 
     async get(data: {
@@ -224,63 +221,53 @@ export class CrudService<
         const em = this.orm.em.fork();
         await em.begin();
 
-        try {
-            const entityName = this._metadata.name!;
-            const primaryKeys = this._metadata.primaryKeys;
+        const entityName = this._metadata.name!;
+        const primaryKeys = this._metadata.primaryKeys;
+        const hArgs = new CrudArgs(this.em, this.moduleRef, this.options, {
+            [CrudParamTypes.KEYS]: primaryKeys,
+            [CrudParamTypes.REQUEST]: data.req,
+            [CrudParamTypes.RESPONSE]: data.res,
+            [CrudParamTypes.PARAMS]: data.params,
+            [CrudParamTypes.QUERY]: data.query,
+        });
 
-            const options = {};
-            let where = {} as WhereQuery<T_CrudEntity>;
-            const hookArgs = {
-                [CrudParamTypes.KEYS]: primaryKeys,
-                [CrudParamTypes.REQUEST]: data.req,
-                [CrudParamTypes.RESPONSE]: data.res,
-                [CrudParamTypes.PARAMS]: data.params,
-                [CrudParamTypes.QUERY]: data.query,
-                [CrudParamTypes.FILTER]: where,
-                [CrudParamTypes.OPTIONS]: options,
-            };
-            where = ((await this.callHook(em, CrudHooks.GET_QUERY, {
-                ...hookArgs,
-            })) || {}) as WhereQuery<T_CrudEntity>;
+        try {
+            await hArgs.exec(CrudHooks.GET_QUERY, CrudParamTypes.FILTER);
 
             for (const pk of primaryKeys) {
-                where[pk] = data.params[pk];
+                hArgs.data[CrudParamTypes.FILTER] = data.params[pk];
             }
-            hookArgs[CrudParamTypes.FILTER] = where;
-            where =
-                ((await this.callHook(em, CrudHooks.BEFORE_GET, {
-                    ...hookArgs,
-                })) as WhereQuery<T_CrudEntity>) || where;
+            await hArgs.exec(CrudHooks.BEFORE_GET, CrudParamTypes.FILTER);
 
-            hookArgs[CrudParamTypes.FILTER] = where;
-            where =
-                ((await this.callHook(em, CrudHooks.BEFORE_VIEW, {
-                    ...hookArgs,
-                })) as WhereQuery<T_CrudEntity>) || where;
+            await hArgs.exec(CrudHooks.BEFORE_VIEW, CrudParamTypes.FILTER);
 
             let entity = await em.findOne<T_CrudEntity, P>(
                 entityName,
-                where as FilterQuery<T_CrudEntity>,
-                options,
+                hArgs.data[CrudParamTypes.FILTER] as FilterQuery<T_CrudEntity>,
+                hArgs.data[CrudParamTypes.OPTIONS],
             );
-            hookArgs[CrudParamTypes.FILTER] = where;
-            this.setEntity(hookArgs, [entity]);
-            entity =
-                (await this.callHook(em, CrudHooks.AFTER_GET, {
-                    ...hookArgs,
-                })) || entity;
+            await hArgs.setEntity(entity);
+            await hArgs.exec(CrudHooks.AFTER_GET, CrudParamTypes.ENTITY);
 
+            await hArgs.exec(CrudHooks.BEFORE_FLUSH, CrudParamTypes.ENTITY);
             await em.flush();
-            await em.commit();
+            await hArgs.exec(CrudHooks.AFTER_FLUSH, CrudParamTypes.ENTITY);
 
-            this.setEntity(hookArgs, [entity]);
-            const json = (await this.callHook(em, CrudHooks.AFTER_VIEW, {
-                ...hookArgs,
-            })) || { [this._options.name]: wrap(entity).toPOJO() };
+            await hArgs.exec(CrudHooks.BEFORE_COMMIT, CrudParamTypes.ENTITY);
+            await em.commit();
+            await hArgs.exec(CrudHooks.AFTER_COMMIT, CrudParamTypes.ENTITY);
+
+            const json = await hArgs.call(CrudHooks.AFTER_VIEW, {
+                [this.options.name]: wrap(
+                    hArgs.data[CrudParamTypes.ENTITY],
+                ).toPOJO(),
+            });
 
             return json as CrudGetResult<T_CrudName, T_CrudEntity, P>;
         } catch (e) {
+            await hArgs.call(CrudHooks.BEFORE_PERSIST);
             await em.rollback();
+            await hArgs.call(CrudHooks.AFTER_PERSIST);
             throw e;
         }
     }
@@ -296,23 +283,28 @@ export class CrudService<
         const em = this.orm.em.fork();
         await em.begin();
 
+        const primaryKeys = this._metadata.primaryKeys;
+        const entityName = this._metadata.name!;
+        const hArgs = new CrudArgs(this.em, this.moduleRef, this.options, {
+            [CrudParamTypes.KEYS]: primaryKeys,
+            [CrudParamTypes.OPTIONS]: {},
+            [CrudParamTypes.REQUEST]: data.req,
+            [CrudParamTypes.RESPONSE]: data.res,
+            [CrudParamTypes.PARAMS]: data.params,
+            [CrudParamTypes.BODY]: data.body,
+            [CrudParamTypes.FILE]: data.file,
+            [CrudParamTypes.FILES]: data.files,
+        });
+
         try {
-            const options = {};
-            const primaryKeys = this._metadata.primaryKeys;
-            const hookArgs = {
-                [CrudParamTypes.KEYS]: primaryKeys,
-                [CrudParamTypes.REQUEST]: data.req,
-                [CrudParamTypes.RESPONSE]: data.res,
-                [CrudParamTypes.PARAMS]: data.params,
-                [CrudParamTypes.BODY]: data.body,
-                [CrudParamTypes.FILE]: data.file,
-                [CrudParamTypes.FILES]: data.files,
-            };
-            const entityName = this._metadata.name!;
-            let entities: T_CrudEntity[] =
-                (await this.callHook(em, CrudHooks.BEFORE_CREATE, {
-                    ...hookArgs,
-                })) || [];
+            let entities: T_CrudEntity[] = await hArgs.exec(
+                CrudHooks.BEFORE_CREATE,
+                CrudParamTypes.ENTITIES,
+            );
+            entities = await hArgs.exec(
+                CrudHooks.BEFORE_UPSERT,
+                CrudParamTypes.ENTITIES,
+            );
             entities = Array.isArray(entities) ? entities : [entities];
 
             if (entities.length === 0) {
@@ -326,37 +318,32 @@ export class CrudService<
                     entities.push(
                         em.create<T_CrudEntity>(
                             entityName,
-                            data.body[this._options.name],
+                            data.body[this.options.name],
                         ),
                     );
                 }
             }
 
-            this.setEntity(hookArgs, entities);
-            entities =
-                (await this.callHook(em, CrudHooks.AFTER_CREATE, {
-                    ...hookArgs,
-                })) || entities;
-            entities = Array.isArray(entities) ? entities : [entities];
+            hArgs.setEntity(entities);
+            await hArgs.exec(CrudHooks.AFTER_CREATE, CrudParamTypes.ENTITIES);
+            await hArgs.exec(CrudHooks.AFTER_UPSERT, CrudParamTypes.ENTITIES);
+            await hArgs.exec(CrudHooks.BEFORE_FLUSH, CrudParamTypes.ENTITIES);
 
-            this.setEntity(hookArgs, entities);
-            entities =
-                (await this.callHook(em, CrudHooks.BEFORE_FLUSH, {
-                    ...hookArgs,
-                })) || entities;
-            entities = Array.isArray(entities) ? entities : [entities];
-
+            let i = 0;
             for (const entity of entities) {
-                await em.persist(entity);
+                await em.persist(
+                    await hArgs.call(CrudHooks.BEFORE_PERSIST, entity),
+                );
+                entities[i] = await hArgs.call(
+                    CrudHooks.AFTER_PERSIST,
+                    entities[i],
+                );
+                i++;
             }
             await em.flush();
 
-            this.setEntity(hookArgs, entities);
-            entities =
-                (await this.callHook(em, CrudHooks.AFTER_FLUSH, {
-                    ...hookArgs,
-                })) || entities;
-            entities = Array.isArray(entities) ? entities : [entities];
+            hArgs.setEntity(entities);
+            await hArgs.exec(CrudHooks.AFTER_FLUSH, CrudParamTypes.ENTITIES);
 
             const result: PrimaryKeys<T_CrudEntity> =
                 {} as PrimaryKeys<T_CrudEntity>;
@@ -371,11 +358,16 @@ export class CrudService<
                 }
             }
 
+            await hArgs.call(CrudHooks.BEFORE_COMMIT);
             await em.commit();
+            await hArgs.call(CrudHooks.AFTER_COMMIT);
 
             return result;
         } catch (e) {
+            await hArgs.call(CrudHooks.BEFORE_ROLLBACK);
             await em.rollback();
+            await hArgs.call(CrudHooks.AFTER_ROLLBACK);
+
             throw e;
         }
     }
@@ -391,59 +383,63 @@ export class CrudService<
         const em = this.orm.em.fork();
         await em.begin();
 
+        const primaryKeys = this._metadata.primaryKeys;
+        const hArgs = new CrudArgs(em, this.moduleRef, this.options, {
+            [CrudParamTypes.KEYS]: primaryKeys,
+            [CrudParamTypes.REQUEST]: data.req,
+            [CrudParamTypes.RESPONSE]: data.res,
+            [CrudParamTypes.PARAMS]: data.params,
+            [CrudParamTypes.BODY]: data.body,
+            [CrudParamTypes.FILE]: data.file,
+            [CrudParamTypes.FILES]: data.files,
+        });
+
         try {
-            const primaryKeys = this._metadata.primaryKeys;
-            const hookArgs = {
-                [CrudParamTypes.KEYS]: primaryKeys,
-                [CrudParamTypes.REQUEST]: data.req,
-                [CrudParamTypes.RESPONSE]: data.res,
-                [CrudParamTypes.PARAMS]: data.params,
-                [CrudParamTypes.BODY]: data.body,
-                [CrudParamTypes.FILE]: data.file,
-                [CrudParamTypes.FILES]: data.files,
-            };
             let entity = await this.findOne(em, data);
             if (entity) {
-                data =
-                    (await this.callHook(em, CrudHooks.BEFORE_UPDATE, {
-                        ...hookArgs,
-                    })) || data;
+                data = await hArgs.call(CrudHooks.BEFORE_UPDATE, data);
+                data = await hArgs.call(CrudHooks.BEFORE_UPSERT, data);
 
-                if (!data.body[this._options.name]) {
+                if (!data.body[this.options.name]) {
                     const availableKeys = Object.keys(data.body).join(", ");
                     const error = new Error(
-                        `CRUD Update Error: "body" does not have a "${this._options.name}", "body" contains "${availableKeys}"`,
+                        `CRUD Update Error: "body" does not have a "${this.options.name}", "body" contains "${availableKeys}"`,
                     );
                     throw error;
                 }
-                const json = toPlainObject(data.body[this._options.name]);
+                const json = toPlainObject(data.body[this.options.name]);
                 // assignEntity(em, entity, json);
                 em.assign(entity, json, {
                     updateByPrimaryKey: false,
                     mergeObjects: true,
                 });
-                this.setEntity(hookArgs, [entity]);
-                entity =
-                    (await this.callHook(em, CrudHooks.AFTER_UPDATE, {
-                        ...hookArgs,
-                    })) || entity;
+                hArgs.setEntity(entity);
+                await hArgs.exec(CrudHooks.AFTER_UPDATE, CrudParamTypes.ENTITY);
+                await hArgs.exec(CrudHooks.AFTER_UPSERT, CrudParamTypes.ENTITY);
 
-                this.setEntity(hookArgs, [entity]);
-                entity =
-                    (await this.callHook(em, CrudHooks.BEFORE_FLUSH, {
-                        ...hookArgs,
-                    })) || entity;
-                await em.persistAndFlush(entity);
+                await hArgs.exec(
+                    CrudHooks.BEFORE_PERSIST,
+                    CrudParamTypes.ENTITY,
+                );
+                em.persist(entity);
+                await hArgs.exec(
+                    CrudHooks.AFTER_PERSIST,
+                    CrudParamTypes.ENTITY,
+                );
 
-                this.setEntity(hookArgs, [entity]);
-                entity =
-                    (await this.callHook(em, CrudHooks.AFTER_FLUSH, {
-                        ...hookArgs,
-                    })) || entity;
+                await hArgs.exec(CrudHooks.BEFORE_FLUSH, CrudParamTypes.ENTITY);
+                await em.flush();
+                await hArgs.exec(CrudHooks.AFTER_FLUSH, CrudParamTypes.ENTITY);
             }
+
+            await hArgs.call(CrudHooks.BEFORE_COMMIT);
             await em.commit();
+            await hArgs.call(CrudHooks.AFTER_COMMIT);
         } catch (e) {
+            await hArgs.call(CrudHooks.BEFORE_ROLLBACK);
             await em.rollback();
+            await hArgs.call(CrudHooks.AFTER_ROLLBACK);
+
             throw e;
         }
     }
@@ -456,52 +452,35 @@ export class CrudService<
         const em = this.orm.em.fork();
         await em.begin();
 
-        try {
-            const primaryKeys = this._metadata.primaryKeys;
-            const hookArgs = {
-                [CrudParamTypes.KEYS]: primaryKeys,
-                [CrudParamTypes.REQUEST]: data.req,
-                [CrudParamTypes.RESPONSE]: data.res,
-                [CrudParamTypes.PARAMS]: data.params,
-            };
+        const primaryKeys = this._metadata.primaryKeys;
+        const hArgs = new CrudArgs(em, this.moduleRef, this.options, {
+            [CrudParamTypes.KEYS]: primaryKeys,
+            [CrudParamTypes.REQUEST]: data.req,
+            [CrudParamTypes.RESPONSE]: data.res,
+            [CrudParamTypes.PARAMS]: data.params,
+        });
 
+        try {
             let entity = await this.findOne(em, data);
             if (entity) {
-                this.setEntity(hookArgs, [entity]);
-                entity =
-                    (await this.callHook(em, CrudHooks.BEFORE_DELETE, {
-                        ...hookArgs,
-                    })) || entity;
+                hArgs.setEntity(entity);
+                await hArgs.exec(
+                    CrudHooks.BEFORE_DELETE,
+                    CrudParamTypes.ENTITY,
+                );
                 await em.remove<T_CrudEntity>(entity).flush();
-
-                this.setEntity(hookArgs, [entity]);
-                await this.callHook(em, CrudHooks.AFTER_DELETE, {
-                    ...hookArgs,
-                });
+                await hArgs.call(CrudHooks.AFTER_DELETE);
             }
+
+            await hArgs.call(CrudHooks.BEFORE_COMMIT);
             await em.commit();
+            await hArgs.call(CrudHooks.AFTER_COMMIT);
         } catch (e) {
+            await hArgs.call(CrudHooks.BEFORE_ROLLBACK);
             await em.rollback();
+            await hArgs.call(CrudHooks.AFTER_ROLLBACK);
+
             throw e;
         }
-    }
-
-    callHook<T = any>(
-        em: EntityManager,
-        eventType: CrudHooks,
-        args: { [key in CrudParamTypes]?: any },
-    ): T | Promise<T> | undefined | Promise<undefined> {
-        args[CrudParamTypes.ENTITY_MANAGER] = em;
-        return this._metadataStorage.emit(
-            this.moduleRef,
-            this._options.path || this._options.name,
-            eventType,
-            args,
-        );
-    }
-
-    setEntity(args: any, entities: any[]) {
-        args[CrudParamTypes.ENTITY] = entities[0];
-        args[CrudParamTypes.ENTITIES] = entities;
     }
 }

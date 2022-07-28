@@ -6,6 +6,8 @@ import {
     IDatabaseDriver,
 } from "@mikro-orm/core";
 
+const _circularStack = [];
+
 export function isArray(obj: any) {
     return obj && (Array.isArray(obj) || obj instanceof Collection);
 }
@@ -24,8 +26,13 @@ export function isBuiltInObject(obj: any): boolean {
 
 export function getItems(obj: any): any[] {
     if (obj) {
-        return obj instanceof Collection ? obj.getItems() : obj;
+        if (obj instanceof Collection) {
+            return obj.isInitialized() ? obj.getItems() : [];
+        }
+
+        return obj;
     }
+
     return [];
 }
 
@@ -47,7 +54,27 @@ export function toPlainObject(obj: any): object {
 
     for (const prop of props) {
         if (isConvertableObject(obj[prop])) {
+            if (_circularStack.length > 0) {
+                if (obj[prop].__helper) {
+                    const helper = obj[prop].__helper;
+                    const entityName = helper.__meta.name;
+                    const comparator = helper.__em.comparator;
+                    const lastEntity =
+                        _circularStack[_circularStack.length - 1];
+                    const result = comparator.getEntityComparator(entityName)(
+                        obj[prop],
+                        lastEntity,
+                    );
+
+                    if (Object.keys(result).length === 0) {
+                        continue;
+                    }
+                }
+            }
+
+            _circularStack.push(obj[prop]);
             ret[prop] = toPlainObject(obj[prop]);
+            _circularStack.pop();
         } else if (isArray(obj[prop])) {
             ret[prop] = toPlainArray(obj[prop]);
         } else if (obj[prop] !== undefined) {
