@@ -4,7 +4,6 @@ import {
     FilterQuery,
     FindOneOptions,
     FindOptions,
-    MikroORM,
     QueryFlag,
     QueryOrder,
     QueryOrderMap,
@@ -39,7 +38,6 @@ export class CrudService<
     private _populate: AutoPath<T_CrudEntity, P>[] | boolean;
 
     constructor(
-        private readonly orm: MikroORM,
         private readonly em: EntityManager,
         private moduleRef: ModuleRef,
         @Inject("CRUD_OPTIONS")
@@ -67,7 +65,7 @@ export class CrudService<
         query: CrudSearchQuery<T_CrudEntity>;
         params: any[];
     }): Promise<CrudSearchResult<T_CrudEntity, P>> {
-        const em = this.orm.em.fork();
+        const em = this.em.fork();
         await em.begin();
 
         const primaryKeys = this._metadata.primaryKeys;
@@ -139,25 +137,18 @@ export class CrudService<
                 >,
             );
             ret[0] = await hArgs.call(CrudHooks.AFTER_SEARCH, ret[0]);
-            ret[0] = await hArgs.call(CrudHooks.BEFORE_PERSIST, ret[0]);
-            await em.persist(ret[0]);
-            ret[0] = await hArgs.call(CrudHooks.AFTER_PERSIST, ret[0]);
-
-            ret[0] = await hArgs.call(CrudHooks.BEFORE_FLUSH, ret[0]);
-            await em.flush();
-            await hArgs.call(CrudHooks.AFTER_FLUSH);
 
             await hArgs.call(CrudHooks.BEFORE_COMMIT);
             await em.commit();
             await hArgs.call(CrudHooks.AFTER_COMMIT);
 
             return {
-                items: ret[0].map((x) => wrap(x).toPOJO()),
+                items: ret[0].map((x) => (x.__helper ? wrap(x).toPOJO() : x)),
                 count: ret[1],
             };
         } catch (e) {
             await hArgs.call(CrudHooks.BEFORE_ROLLBACK);
-            await em.rollback();
+            em.isInTransaction() && (await em.rollback());
             await hArgs.call(CrudHooks.AFTER_ROLLBACK);
             throw e;
         }
@@ -218,7 +209,7 @@ export class CrudService<
         query: any;
         params: PrimaryKeys<T_CrudEntity>;
     }): Promise<CrudGetResult<T_CrudName, T_CrudEntity, P>> {
-        const em = this.orm.em.fork();
+        const em = this.em.fork();
         await em.begin();
 
         const entityName = this._metadata.name!;
@@ -249,25 +240,27 @@ export class CrudService<
             await hArgs.setEntity(entity);
             await hArgs.exec(CrudHooks.AFTER_GET, CrudParamTypes.ENTITY);
 
-            await hArgs.exec(CrudHooks.BEFORE_FLUSH, CrudParamTypes.ENTITY);
-            await em.flush();
-            await hArgs.exec(CrudHooks.AFTER_FLUSH, CrudParamTypes.ENTITY);
-
             await hArgs.exec(CrudHooks.BEFORE_COMMIT, CrudParamTypes.ENTITY);
             await em.commit();
             await hArgs.exec(CrudHooks.AFTER_COMMIT, CrudParamTypes.ENTITY);
 
-            const json = await hArgs.call(CrudHooks.AFTER_VIEW, {
-                [this.options.name]: wrap(
-                    hArgs.data[CrudParamTypes.ENTITY],
-                ).toPOJO(),
-            });
+            entity = hArgs.data[CrudParamTypes.ENTITY];
+            const json = await hArgs.call(
+                CrudHooks.AFTER_VIEW,
+                entity.__helper
+                    ? {
+                          [this.options.name]: wrap(
+                              hArgs.data[CrudParamTypes.ENTITY],
+                          ).toPOJO(),
+                      }
+                    : entity,
+            );
 
             return json as CrudGetResult<T_CrudName, T_CrudEntity, P>;
         } catch (e) {
-            await hArgs.call(CrudHooks.BEFORE_PERSIST);
-            await em.rollback();
-            await hArgs.call(CrudHooks.AFTER_PERSIST);
+            await hArgs.call(CrudHooks.BEFORE_ROLLBACK);
+            em.isInTransaction() && (await em.rollback());
+            await hArgs.call(CrudHooks.AFTER_ROLLBACK);
             throw e;
         }
     }
@@ -280,7 +273,7 @@ export class CrudService<
         file: Express.Multer.File;
         files: Express.Multer.File[];
     }): Promise<PrimaryKeys<T_CrudEntity>> {
-        const em = this.orm.em.fork();
+        const em = this.em.fork();
         await em.begin();
 
         const primaryKeys = this._metadata.primaryKeys;
@@ -365,7 +358,7 @@ export class CrudService<
             return result;
         } catch (e) {
             await hArgs.call(CrudHooks.BEFORE_ROLLBACK);
-            await em.rollback();
+            em.isInTransaction() && (await em.rollback());
             await hArgs.call(CrudHooks.AFTER_ROLLBACK);
 
             throw e;
@@ -380,7 +373,7 @@ export class CrudService<
         file: Express.Multer.File;
         files: Express.Multer.File[];
     }): Promise<void> {
-        const em = this.orm.em.fork();
+        const em = this.em.fork();
         await em.begin();
 
         const primaryKeys = this._metadata.primaryKeys;
@@ -437,7 +430,7 @@ export class CrudService<
             await hArgs.call(CrudHooks.AFTER_COMMIT);
         } catch (e) {
             await hArgs.call(CrudHooks.BEFORE_ROLLBACK);
-            await em.rollback();
+            em.isInTransaction() && (await em.rollback());
             await hArgs.call(CrudHooks.AFTER_ROLLBACK);
 
             throw e;
@@ -449,7 +442,7 @@ export class CrudService<
         res: Express.Response;
         params: PrimaryKeys<T_CrudEntity>;
     }): Promise<void> {
-        const em = this.orm.em.fork();
+        const em = this.em.fork();
         await em.begin();
 
         const primaryKeys = this._metadata.primaryKeys;
@@ -477,7 +470,7 @@ export class CrudService<
             await hArgs.call(CrudHooks.AFTER_COMMIT);
         } catch (e) {
             await hArgs.call(CrudHooks.BEFORE_ROLLBACK);
-            await em.rollback();
+            em.isInTransaction() && (await em.rollback());
             await hArgs.call(CrudHooks.AFTER_ROLLBACK);
 
             throw e;

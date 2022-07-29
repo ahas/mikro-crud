@@ -1,5 +1,4 @@
-import { AnyEntity, MikroORM } from "@mikro-orm/core";
-import { EntityManager } from "@mikro-orm/core";
+import { AnyEntity } from "@mikro-orm/core";
 import {
     Body,
     Controller,
@@ -73,8 +72,6 @@ export function getCrudControllerClass<
                 T_CrudEntity,
                 P
             >,
-            private readonly orm: MikroORM,
-            private readonly em: EntityManager,
         ) {}
 
         @Get(CRUD_URL)
