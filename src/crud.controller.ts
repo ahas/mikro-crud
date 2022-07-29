@@ -84,6 +84,7 @@ export function getCrudControllerClass<
             @Query() query: CrudSearchQuery<T_CrudEntity>,
             @Param() params,
         ) {
+            query.options = this.crudService.options;
             return await this.crudService.search({
                 req,
                 res,

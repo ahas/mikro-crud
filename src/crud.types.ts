@@ -59,9 +59,9 @@ export class CrudSearchQuery<T_CrudEntity extends AnyEntity<T_CrudEntity>> {
                 this.setSearchQuery(where, this.category, {
                     $like: `%${this.search}%`,
                 });
-            } else if (this._options.filter) {
+            } else if (this.options.filter) {
                 where.$or = [];
-                for (const column of this._options.filter) {
+                for (const column of this.options.filter) {
                     const q = {};
                     where.$or.push(
                         this.setSearchQuery(q, column as string, {

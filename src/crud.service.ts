@@ -34,8 +34,8 @@ export class CrudService<
     P extends string = never,
 > {
     private _metadata: EntityMetadata<T_CrudEntity>;
-    private options: CrudOptions<T_CrudName, T_CrudEntity, P>;
     private _populate: AutoPath<T_CrudEntity, P>[] | boolean;
+    options: CrudOptions<T_CrudName, T_CrudEntity, P>;
 
     constructor(
         private readonly em: EntityManager,
@@ -83,7 +83,7 @@ export class CrudService<
                 [CrudParamTypes.OPTIONS]: {
                     populate: this._populate,
                     offset: data.query.offset || this.options.offset,
-                    flags: [QueryFlag.PAGINATE],
+                    flags: [QueryFlag.DISABLE_PAGINATE],
                 },
             },
         );
