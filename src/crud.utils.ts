@@ -43,7 +43,7 @@ export function toPlainObject(obj: any): object {
     for (const prop of props) {
         if (isConvertableObject(obj[prop])) {
             if (_circularStack.length > 0) {
-                if (obj[prop].__helper) {
+                if (obj[prop].__helper && obj[prop].__helper.__em) {
                     const helper = obj[prop].__helper;
                     const entityName = helper.__meta.name;
                     const comparator = helper.__em.comparator;
