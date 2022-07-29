@@ -9,7 +9,7 @@ import {
 const _circularStack = [];
 
 export function isArray(obj: any) {
-    return obj && (Array.isArray(obj) || obj instanceof Collection);
+    return obj && Array.isArray(obj);
 }
 
 export function isObject(obj: any): boolean {
@@ -17,27 +17,15 @@ export function isObject(obj: any): boolean {
 }
 
 export function isEntity(obj: any): boolean {
-    return "__helper" in obj;
+    return "__helper" in obj && !(obj instanceof Collection);
 }
 
 export function isBuiltInObject(obj: any): boolean {
-    return obj instanceof Date;
-}
-
-export function getItems(obj: any): any[] {
-    if (obj) {
-        if (obj instanceof Collection) {
-            return obj.isInitialized() ? obj.getItems() : [];
-        }
-
-        return obj;
-    }
-
-    return [];
+    return obj instanceof Date || obj instanceof RegExp;
 }
 
 export function isConvertableObject(obj: any): boolean {
-    return isObject(obj) && (isEntity(obj) || !isBuiltInObject(obj));
+    return isObject(obj) && (isEntity(obj) || !isBuiltInObject(obj)) && !(obj instanceof Collection);
 }
 
 export function getProperties(obj: any): string[] {
@@ -85,10 +73,10 @@ export function toPlainObject(obj: any): object {
     return ret;
 }
 
-export function toPlainArray(arr: any): any[] {
+export function toPlainArray(items: any[]): any[] {
     const ret = [];
 
-    for (const item of getItems(arr)) {
+    for (const item of items) {
         if (isConvertableObject(item)) {
             ret.push(toPlainObject(item));
         } else if (isArray(item)) {

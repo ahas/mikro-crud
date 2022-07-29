@@ -178,7 +178,7 @@ export class CrudService<
             [CrudParamTypes.OPTIONS]: options,
         });
 
-        let where = await hArgs.exec<WhereQuery<T_CrudEntity>>(
+        const where = await hArgs.exec<WhereQuery<T_CrudEntity>>(
             CrudHooks.GET_QUERY,
             CrudParamTypes.FILTER,
         );
@@ -187,20 +187,11 @@ export class CrudService<
             where[pk] = data.params[pk];
         }
 
-        hArgs.data[CrudParamTypes.FILTER] = where;
-        where = await hArgs.exec(CrudHooks.BEFORE_GET, CrudParamTypes.FILTER);
-
-        let entity = await em.findOne<T_CrudEntity, P>(
+        return await em.findOne<T_CrudEntity, P>(
             entityName,
             where as FilterQuery<T_CrudEntity>,
             options,
         );
-        hArgs.data[CrudParamTypes.FILTER] = where;
-        hArgs.setEntity(entity);
-        return (await hArgs.exec(
-            CrudHooks.AFTER_GET,
-            CrudParamTypes.ENTITY,
-        )) as Loaded<T_CrudEntity, P>;
     }
 
     async get(data: {
