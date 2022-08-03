@@ -1,0 +1,119 @@
+{
+  "data": {
+    "propertyOrder": {},
+    "properties": {
+      "childId": {
+        "name": "childId",
+        "reference": "scalar",
+        "primary": true,
+        "type": "number"
+      },
+      "childValue_a": {
+        "name": "childValue_a",
+        "reference": "scalar",
+        "getter": false,
+        "setter": false,
+        "type": "string"
+      },
+      "childValue_b": {
+        "name": "childValue_b",
+        "reference": "scalar",
+        "getter": false,
+        "setter": false,
+        "type": "string"
+      },
+      "childValue_c": {
+        "name": "childValue_c",
+        "reference": "scalar",
+        "getter": false,
+        "setter": false,
+        "type": "string"
+      },
+      "parent": {
+        "name": "parent",
+        "reference": "1:1",
+        "cascade": [
+          "persist"
+        ],
+        "type": "OneToOneParent",
+        "owner": false,
+        "nullable": true,
+        "unique": false
+      }
+    },
+    "props": [
+      {
+        "name": "childId",
+        "reference": "scalar",
+        "primary": true,
+        "type": "number"
+      },
+      {
+        "name": "childValue_a",
+        "reference": "scalar",
+        "getter": false,
+        "setter": false,
+        "type": "string"
+      },
+      {
+        "name": "childValue_b",
+        "reference": "scalar",
+        "getter": false,
+        "setter": false,
+        "type": "string"
+      },
+      {
+        "name": "childValue_c",
+        "reference": "scalar",
+        "getter": false,
+        "setter": false,
+        "type": "string"
+      },
+      {
+        "name": "parent",
+        "reference": "1:1",
+        "cascade": [
+          "persist"
+        ],
+        "type": "OneToOneParent",
+        "owner": false,
+        "nullable": true,
+        "unique": false
+      }
+    ],
+    "primaryKeys": [
+      "childId"
+    ],
+    "filters": {},
+    "hooks": {},
+    "indexes": [],
+    "uniques": [],
+    "checks": [],
+    "concurrencyCheckKeys": {},
+    "className": "OneToOneChild",
+    "path": "./dist/entities/one-to-one-child.js",
+    "name": "OneToOneChild",
+    "abstract": false,
+    "constructorParams": [],
+    "toJsonParams": [],
+    "useCache": true,
+    "compositePK": false,
+    "relations": [
+      {
+        "name": "parent",
+        "reference": "1:1",
+        "cascade": [
+          "persist"
+        ],
+        "type": "OneToOneParent",
+        "owner": false,
+        "nullable": true,
+        "unique": false
+      }
+    ],
+    "collection": "one_to_one_child"
+  },
+  "origin": "./dist/entities/one-to-one-child.js",
+  "hash": "d9f86a513928910e8e3e6b5482d8db49",
+  "version": "5.3.0"
+}

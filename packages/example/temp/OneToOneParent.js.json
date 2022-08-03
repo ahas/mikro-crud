@@ -1,0 +1,97 @@
+{
+  "data": {
+    "propertyOrder": {},
+    "properties": {
+      "parentId": {
+        "name": "parentId",
+        "reference": "scalar",
+        "primary": true,
+        "type": "number"
+      },
+      "parentValue": {
+        "name": "parentValue",
+        "reference": "scalar",
+        "getter": false,
+        "setter": false,
+        "type": "string"
+      },
+      "child": {
+        "name": "child",
+        "reference": "1:1",
+        "cascade": [
+          "persist"
+        ],
+        "eager": true,
+        "owner": true,
+        "nullable": true,
+        "orphanRemoval": true,
+        "type": "OneToOneChild",
+        "unique": true
+      }
+    },
+    "props": [
+      {
+        "name": "parentId",
+        "reference": "scalar",
+        "primary": true,
+        "type": "number"
+      },
+      {
+        "name": "parentValue",
+        "reference": "scalar",
+        "getter": false,
+        "setter": false,
+        "type": "string"
+      },
+      {
+        "name": "child",
+        "reference": "1:1",
+        "cascade": [
+          "persist"
+        ],
+        "eager": true,
+        "owner": true,
+        "nullable": true,
+        "orphanRemoval": true,
+        "type": "OneToOneChild",
+        "unique": true
+      }
+    ],
+    "primaryKeys": [
+      "parentId"
+    ],
+    "filters": {},
+    "hooks": {},
+    "indexes": [],
+    "uniques": [],
+    "checks": [],
+    "concurrencyCheckKeys": {},
+    "className": "OneToOneParent",
+    "path": "./dist/entities/one-to-one-parent.js",
+    "name": "OneToOneParent",
+    "abstract": false,
+    "constructorParams": [],
+    "toJsonParams": [],
+    "useCache": true,
+    "compositePK": false,
+    "relations": [
+      {
+        "name": "child",
+        "reference": "1:1",
+        "cascade": [
+          "persist"
+        ],
+        "eager": true,
+        "owner": true,
+        "nullable": true,
+        "orphanRemoval": true,
+        "type": "OneToOneChild",
+        "unique": true
+      }
+    ],
+    "collection": "one_to_one_parent"
+  },
+  "origin": "./dist/entities/one-to-one-parent.js",
+  "hash": "957827a677608978838b362bf3499ff8",
+  "version": "5.3.0"
+}
