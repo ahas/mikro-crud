@@ -1,6 +1,6 @@
 {
   "name": "@ahas/mikro-crud",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "CRUD interface for nestjs mikro orm",
   "author": "ahas <dev@ahas.io>",
   "license": "MIT",
