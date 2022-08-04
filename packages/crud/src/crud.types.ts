@@ -17,7 +17,7 @@ export interface CrudOptions<
   T_UpdateDTO = any,
 > {
   name: T_CrudName;
-  entity: new () => T_CrudEntity;
+  entity: new (...args: any[]) => T_CrudEntity;
   path?: string;
   prefix?: string;
   filter?: AutoPath<T_CrudEntity, P>[];
