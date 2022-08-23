@@ -1,44 +1,67 @@
 import { ToNumber, ToString } from "@ahas/class-converter";
-import type { AnyEntity, Loaded, RequiredEntityData, QueryOrderMap } from "@mikro-orm/core";
-import type { AutoPath, EntityDTO } from "@mikro-orm/core/typings";
 import { CrudParamTypes } from "./decorators";
 import deepmerge from "deepmerge";
+import type { AnyEntity, Loaded, RequiredEntityData, QueryOrderMap } from "@mikro-orm/core";
+import type { AutoPath, EntityDTO } from "@mikro-orm/core/typings";
+import type { S3 } from "aws-sdk";
 
 export type PrimaryKeys<T> = Record<keyof T & string, any>;
 
-export class CrudCreateDTO<T> {}
-export class CrudUpdateDTO<T> {}
+export class CrudCreateDto<T> {}
+export class CrudUpdateDto<T> {}
 
-export interface CrudOptions<
-  T_CrudName extends string,
-  T_CrudEntity extends AnyEntity<T_CrudEntity>,
-  P extends string = never,
-  T_CreateDTO = any,
-  T_UpdateDTO = any,
-> {
-  name: T_CrudName;
-  entity: new (...args: any[]) => T_CrudEntity;
-  path?: string;
-  prefix?: string;
-  filter?: AutoPath<T_CrudEntity, P>[];
-  populate?: AutoPath<T_CrudEntity, P>[] | boolean;
-  primaryKeys?: (keyof T_CrudEntity & string)[];
-  dto?: {
-    create?: new () => T_CreateDTO;
-    update?: new () => T_UpdateDTO;
-  };
-  offset?: number;
-  limit?: number;
+export interface RequestData<T_Name extends string, T_Entity> {
+  req: Express.Request;
+  res: Express.Response;
+  params: PrimaryKeys<T_Entity>;
+  query?: CrudSearchQuery<T_Entity>;
+  body?: CrudDto<T_Name, T_Entity> | T_Entity[];
+  file?: Express.Multer.File;
+  files?: Express.Multer.File[];
 }
 
-export class CrudSearchQuery<T_CrudEntity extends AnyEntity<T_CrudEntity>> {
+export interface CrudOptions<
+  T_Name extends string,
+  T_Entity extends AnyEntity<T_Entity>,
+  P extends string = never,
+  T_CreateDto = any,
+  T_UpdateDto = any,
+> {
+  name: T_Name;
+  entity: new (...args: any[]) => T_Entity;
+  path?: string;
+  prefix?: string;
+  filter?: AutoPath<T_Entity, P>[];
+  populate?:
+    | AutoPath<T_Entity, P>[]
+    | {
+        search?: AutoPath<T_Entity, P>[];
+        get?: AutoPath<T_Entity, P>[];
+      }
+    | boolean;
+  primaryKeys?: (keyof T_Entity & string)[];
+  dto?: {
+    create?: new () => T_CreateDto;
+    update?: new () => T_UpdateDto;
+  };
+  default?: {
+    offset?: number;
+    limit?: number;
+  };
+  aws?: {
+    s3: S3;
+    bucket: string;
+  };
+}
+
+export class CrudSearchQuery<T_Entity extends AnyEntity<T_Entity>> {
   [key: string]: any;
   @ToString({ optional: true, api: true })
   readonly search?: string;
   @ToString({ optional: true, api: true })
-  readonly category?: keyof T_CrudEntity & string;
+  readonly category?: keyof T_Entity & string;
   @ToString({ optional: true, api: true })
-  readonly sort?: keyof QueryOrderMap<T_CrudEntity>;
+  readonly sort?: keyof QueryOrderMap<T_Entity>;
   @ToString({ optional: true, api: true })
   readonly order?: "asc" | "desc";
   @ToNumber({ optional: true, api: true })
@@ -93,19 +116,17 @@ export class CrudSearchQuery<T_CrudEntity extends AnyEntity<T_CrudEntity>> {
   }
 }
 
-export type CrudSearchResult<T_CrudEntity extends AnyEntity<T_CrudEntity>, P extends string = never> = {
-  items: EntityDTO<Loaded<T_CrudEntity, P>>[];
+export type CrudSearchResult<T_Entity extends AnyEntity<T_Entity>, P extends string = never> = {
+  items: EntityDTO<Loaded<T_Entity, P>>[];
   count: number;
 };
 
-export type CrudGetResult<
-  T_CrudName extends string,
-  T_CrudEntity extends AnyEntity<T_CrudEntity>,
-  P extends string = never,
-> = { [key in T_CrudName]: Loaded<T_CrudEntity, P> };
+export type CrudGetResult<T_Name extends string, T_Entity extends AnyEntity<T_Entity>, P extends string = never> = {
+  [key in T_Name]: Loaded<T_Entity, P>;
+};
 
-export type CrudDTO<T_CrudName extends string, T_CrudEntity extends AnyEntity<T_CrudEntity>> = {
-  [key in T_CrudName]: RequiredEntityData<T_CrudEntity>;
+export type CrudDto<T_Name extends string, T_Entity extends AnyEntity<T_Entity>> = {
+  [key in T_Name]: RequiredEntityData<T_Entity>;
 };
 
 export enum CrudHooks {

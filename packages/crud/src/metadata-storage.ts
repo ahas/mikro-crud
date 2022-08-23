@@ -1,4 +1,4 @@
-import { ModuleRef } from "@nestjs/core";
+import type { ModuleRef } from "@nestjs/core";
 import { CrudParamTypes } from "./decorators";
 import { CrudHooks, CrudListenerMetadataArgs } from "./crud.types";
 import { CRUD_ARGS_METADATA } from "./decorators";

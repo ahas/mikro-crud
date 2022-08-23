@@ -2,38 +2,48 @@ import type { AnyEntity } from "@mikro-orm/core";
 import { DynamicModule, Module } from "@nestjs/common";
 import { getCrudControllerClass } from "./crud.controller";
 import { CrudService } from "./crud.service";
-import { CrudDTO, CrudOptions } from "./crud.types";
+import { CrudDto, CrudOptions } from "./crud.types";
+import type { S3 } from "aws-sdk";
 
-const CRUD_CONTROLLER_METHODS = ["search", "get", "create", "update", "delete"] as const;
+const CRUD_CONTROLLER_METHODS = ["search", "get", "create", "update", "upsert", "delete"] as const;
 type CrudControllerMethods = "all" | typeof CRUD_CONTROLLER_METHODS[number];
 
 type DynamicCrudModule<
-  T_CrudName extends string,
-  T_CrudEntity extends AnyEntity<T_CrudEntity>,
+  T_Name extends string,
+  T_Entity extends AnyEntity<T_Entity>,
   P extends string = never,
 > = DynamicModule & {
   decorate(
     propertyName: CrudControllerMethods,
     decorator: (...args: any[]) => MethodDecorator,
     ...decoratorArgs: any[]
-  ): DynamicCrudModule<T_CrudName, T_CrudEntity, P>;
+  ): DynamicCrudModule<T_Name, T_Entity, P>;
 };
 
 @Module({})
 export class CrudModule {
+  static s3: Map<string, S3> = new Map<string, S3>();
+
   static forFeature<
-    T_CreateDTO extends CrudDTO<T_CrudName, T_CrudEntity>,
-    T_UpdateDTO extends CrudDTO<T_CrudName, T_CrudEntity>,
-    T_CrudName extends string,
-    T_CrudEntity extends AnyEntity<T_CrudEntity>,
+    T_CreateDto extends CrudDto<T_Name, T_Entity>,
+    T_UpdateDto extends CrudDto<T_Name, T_Entity>,
+    T_Name extends string,
+    T_Entity extends AnyEntity<T_Entity>,
     P extends string = never,
-  >(
-    options: CrudOptions<T_CrudName, T_CrudEntity, P, T_CreateDTO, T_UpdateDTO>,
-  ): DynamicCrudModule<T_CrudName, T_CrudEntity, P> {
+  >(options: CrudOptions<T_Name, T_Entity, P, T_CreateDto, T_UpdateDto>): DynamicCrudModule<T_Name, T_Entity, P> {
     options.prefix = options.prefix || "/api";
     options.path = options.path || options.name;
 
-    const controller = getCrudControllerClass<T_CreateDTO, T_UpdateDTO, T_CrudName, T_CrudEntity, P>(options);
+    if (options.aws) {
+      this.s3.set(options.aws.bucket, options.aws.s3);
+    }
+
+    const controller = getCrudControllerClass<T_CreateDto, T_UpdateDto, T_Name, T_Entity, P>(options);
+    const defaultDecoratorOptions = {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+    };
 
     return {
       module: CrudModule,
@@ -42,12 +52,21 @@ export class CrudModule {
       exports: [CrudService],
       decorate(propertyName: CrudControllerMethods, decorator: (...args: any[]) => MethodDecorator) {
         if (propertyName !== "all") {
-          decorator(controller.prototype, propertyName, {
-            value: controller.prototype[propertyName],
-            writable: true,
-            enumerable: false,
-            configurable: true,
-          });
+          if (propertyName == "upsert") {
+            decorator(controller.prototype, propertyName, {
+              value: controller.prototype.create,
+              ...defaultDecoratorOptions,
+            });
+            decorator(controller.prototype, propertyName, {
+              value: controller.prototype.update,
+              ...defaultDecoratorOptions,
+            });
+          } else {
+            decorator(controller.prototype, propertyName, {
+              value: controller.prototype[propertyName],
+              ...defaultDecoratorOptions,
+            });
+          }
         } else {
           for (const prop of CRUD_CONTROLLER_METHODS) {
             this.decorate(prop, decorator);

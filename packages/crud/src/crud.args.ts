@@ -1,41 +1,33 @@
 import type { AnyEntity, EntityManager, FindOneOptions, FindOptions } from "@mikro-orm/core";
-import { ModuleRef } from "@nestjs/core";
 import { CrudParamTypes } from "./decorators";
-import { CrudDTO, CrudHooks, CrudOptions, CrudSearchQuery, WhereQuery } from "./crud.types";
+import { CrudDto, CrudHooks, CrudOptions, CrudSearchQuery, WhereQuery } from "./crud.types";
 import { getMetadataStorage } from "./metadata-storage";
+import type { ModuleRef } from "@nestjs/core";
 
-export class CrudArgsData<
-  T_CrudName extends string,
-  T_CrudEntity extends AnyEntity<T_CrudEntity>,
-  P extends string = never,
-> {
+export class CrudArgsData<T_Name extends string, T_Entity extends AnyEntity<T_Entity>, P extends string = never> {
   [CrudParamTypes.ENTITY_MANAGER]?: EntityManager;
-  [CrudParamTypes.KEYS]: (keyof T_CrudEntity & string)[];
+  [CrudParamTypes.KEYS]: (keyof T_Entity & string)[];
   [CrudParamTypes.REQUEST]: Express.Request;
   [CrudParamTypes.RESPONSE]: Express.Response;
-  [CrudParamTypes.QUERY]?: CrudSearchQuery<T_CrudEntity>;
+  [CrudParamTypes.QUERY]?: CrudSearchQuery<T_Entity>;
   [CrudParamTypes.PARAMS]?: any;
-  [CrudParamTypes.BODY]?: T_CrudEntity[] | CrudDTO<T_CrudName, T_CrudEntity>;
-  [CrudParamTypes.FILTER]?: WhereQuery<T_CrudEntity>;
+  [CrudParamTypes.BODY]?: T_Entity[] | CrudDto<T_Name, T_Entity>;
+  [CrudParamTypes.FILTER]?: WhereQuery<T_Entity>;
   [CrudParamTypes.FILE]?: Express.Multer.File | null;
   [CrudParamTypes.FILES]?: Express.Multer.File[];
-  [CrudParamTypes.OPTIONS]?: FindOptions<T_CrudEntity, P> | FindOneOptions<T_CrudEntity, P>;
+  [CrudParamTypes.OPTIONS]?: FindOptions<T_Entity, P> | FindOneOptions<T_Entity, P>;
 }
 
-export class CrudArgs<
-  T_CrudName extends string,
-  T_CrudEntity extends AnyEntity<T_CrudEntity>,
-  P extends string = never,
-> {
-  data: CrudArgsData<T_CrudName, T_CrudEntity, P>;
+export class CrudArgs<T_Name extends string, T_Entity extends AnyEntity<T_Entity>, P extends string = never> {
+  data: CrudArgsData<T_Name, T_Entity, P>;
   moduleRef: ModuleRef;
-  options: CrudOptions<T_CrudName, T_CrudEntity, P>;
+  options: CrudOptions<T_Name, T_Entity, P>;
 
   constructor(
     em: EntityManager,
     moduleRef: ModuleRef,
-    options: CrudOptions<T_CrudName, T_CrudEntity, P>,
-    data: CrudArgsData<T_CrudName, T_CrudEntity, P>,
+    options: CrudOptions<T_Name, T_Entity, P>,
+    data: CrudArgsData<T_Name, T_Entity, P>,
   ) {
     this.moduleRef = moduleRef;
     this.options = options;

@@ -1,13 +1,13 @@
 {
-    "name": "@ahas/mikro-crud-monorepo",
-    "version": "1.0.0",
-    "repository": "https://github.com/ahas/mikro-crud.git",
-    "author": "ahas <dev@ahas.io>",
-    "license": "MIT",
-    "private": true,
-    "workspaces": {
-        "packages": [
-            "packages/**"
-        ]
-    }
+  "name": "@ahas/mikro-crud-monorepo",
+  "version": "1.0.0",
+  "repository": "https://github.com/ahas/mikro-crud.git",
+  "author": "ahas <dev@ahas.io>",
+  "license": "MIT",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ]
+  }
 }

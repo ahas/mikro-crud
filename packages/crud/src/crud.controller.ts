@@ -21,28 +21,28 @@ import { CrudService } from "./crud.service";
 import joinUrl from "@ahas/join-url";
 import { plainToInstance } from "class-transformer";
 import { ApiBody, ApiOperation, ApiParam } from "@nestjs/swagger";
-import { CrudGetResult, CrudSearchQuery, CrudDTO, CrudOptions, PrimaryKeys } from "./crud.types";
+import { CrudGetResult, CrudSearchQuery, CrudDto, CrudOptions, PrimaryKeys } from "./crud.types";
 import { Request, Response } from "express";
 
 export interface ICrudController<
-  T_CrudName extends string,
-  T_CrudEntity extends AnyEntity<T_CrudEntity>,
+  T_Name extends string,
+  T_Entity extends AnyEntity<T_Entity>,
   P extends string = never,
 > {
   search(...args: any[]);
-  get(...args: any[]): Promise<CrudGetResult<T_CrudName, T_CrudEntity, P>>;
-  create(...args: any[]): Promise<PrimaryKeys<T_CrudEntity>>;
+  get(...args: any[]): Promise<CrudGetResult<T_Name, T_Entity, P>>;
+  create(...args: any[]): Promise<PrimaryKeys<T_Entity>>;
   update(...args: any[]): Promise<void>;
   delete(...args: any[]): Promise<void>;
 }
 
 export function getCrudControllerClass<
-  T_CreateDTO extends CrudDTO<T_CrudName, T_CrudEntity>,
-  T_UpdateDTO extends CrudDTO<T_CrudName, T_CrudEntity>,
-  T_CrudName extends string,
-  T_CrudEntity extends AnyEntity<T_CrudEntity>,
+  T_CreateDto extends CrudDto<T_Name, T_Entity>,
+  T_UpdateDto extends CrudDto<T_Name, T_Entity>,
+  T_Name extends string,
+  T_Entity extends AnyEntity<T_Entity>,
   P extends string = never,
->(options: CrudOptions<T_CrudName, T_CrudEntity, P>): Type<ICrudController<T_CrudName, T_CrudEntity>> {
+>(options: CrudOptions<T_Name, T_Entity, P>): Type<ICrudController<T_Name, T_Entity>> {
   options.prefix = options.prefix || "/api";
   options.primaryKeys = options.primaryKeys || (["id"] as any);
 
@@ -54,8 +54,8 @@ export function getCrudControllerClass<
   }
 
   @Controller(options.prefix)
-  class CrudController implements ICrudController<T_CrudName, T_CrudEntity, P> {
-    constructor(private readonly crudService: CrudService<T_CrudName, T_CrudEntity, P>) {}
+  class CrudController implements ICrudController<T_Name, T_Entity, P> {
+    constructor(private readonly crudService: CrudService<T_Name, T_Entity, P>) {}
 
     @Get(CRUD_URL)
     @ApiOperation({
@@ -64,10 +64,10 @@ export function getCrudControllerClass<
     async search(
       @Req() req: Request,
       @Res({ passthrough: true }) res: Response,
-      @Query() query: CrudSearchQuery<T_CrudEntity>,
+      @Query() query: CrudSearchQuery<T_Entity>,
       @Param() params,
     ) {
-      query = plainToInstance(CrudSearchQuery, query) as CrudSearchQuery<T_CrudEntity>;
+      query = plainToInstance(CrudSearchQuery, query) as CrudSearchQuery<T_Entity>;
       query.options = this.crudService.options;
 
       return await this.crudService.search({
@@ -85,8 +85,8 @@ export function getCrudControllerClass<
       @Req() req,
       @Res({ passthrough: true }) res,
       @Query() query,
-      @Param() params: PrimaryKeys<T_CrudEntity>,
-    ): Promise<CrudGetResult<T_CrudName, T_CrudEntity, P>> {
+      @Param() params: PrimaryKeys<T_Entity>,
+    ): Promise<CrudGetResult<T_Name, T_Entity, P>> {
       return await this.crudService.get({
         req,
         res,
@@ -104,10 +104,10 @@ export function getCrudControllerClass<
       @Req() req,
       @Res({ passthrough: true }) res,
       @Param() params: any,
-      @Body() body: T_CreateDTO,
+      @Body() body: T_CreateDto,
       @UploadedFile() file,
       @UploadedFiles() files,
-    ): Promise<PrimaryKeys<T_CrudEntity>> {
+    ): Promise<PrimaryKeys<T_Entity>> {
       if (options.dto?.create) {
         body = plainToInstance(options.dto.create, body);
       }
@@ -130,8 +130,8 @@ export function getCrudControllerClass<
     async update(
       @Req() req,
       @Res({ passthrough: true }) res,
-      @Param() params: PrimaryKeys<T_CrudEntity>,
-      @Body() body: T_UpdateDTO,
+      @Param() params: PrimaryKeys<T_Entity>,
+      @Body() body: T_UpdateDto,
       @UploadedFile() file,
       @UploadedFiles() files,
     ): Promise<void> {
@@ -154,11 +154,7 @@ export function getCrudControllerClass<
     @ApiOperation({
       operationId: options.entity.name + "Controller_delete",
     })
-    async delete(
-      @Req() req,
-      @Res({ passthrough: true }) res,
-      @Param() params: PrimaryKeys<T_CrudEntity>,
-    ): Promise<void> {
+    async delete(@Req() req, @Res({ passthrough: true }) res, @Param() params: PrimaryKeys<T_Entity>): Promise<void> {
       return await this.crudService.delete({
         req,
         res,

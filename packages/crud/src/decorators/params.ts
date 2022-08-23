@@ -63,8 +63,8 @@ export const Filter: () => ParameterDecorator = createCrudParamDecorator(CrudPar
 export const Options: () => ParameterDecorator = createCrudParamDecorator(CrudParamTypes.OPTIONS);
 export const Keys: () => ParameterDecorator = createCrudParamDecorator(CrudParamTypes.KEYS);
 export const Body: () => ParameterDecorator = createCrudParamDecorator(CrudParamTypes.BODY);
-export const File: () => ParameterDecorator = createCrudParamDecorator(CrudParamTypes.FILE);
-export const Files: () => ParameterDecorator = createCrudParamDecorator(CrudParamTypes.FILES);
+export const UploadedFile: () => ParameterDecorator = createCrudParamDecorator(CrudParamTypes.FILE);
+export const UploadedFiles: () => ParameterDecorator = createCrudParamDecorator(CrudParamTypes.FILES);
 export const Req: () => ParameterDecorator = createCrudParamDecorator(CrudParamTypes.REQUEST);
 export const Res: () => ParameterDecorator = createCrudParamDecorator(CrudParamTypes.RESPONSE);
 export const Entities: () => ParameterDecorator = createCrudParamDecorator(CrudParamTypes.ENTITIES);
