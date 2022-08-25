@@ -1,5 +1,5 @@
 import type { AutoPath } from "@mikro-orm/core/typings";
-import type { ModuleRef } from "@nestjs/core";
+import { ModuleRef } from "@nestjs/core";
 import {
   AnyEntity,
   EntityMetadata,
@@ -317,9 +317,9 @@ export class CrudService<T_Name extends string, T_Entity extends AnyEntity<T_Ent
         reqData = await hArgs.call(CrudHooks.BEFORE_UPDATE, reqData);
         reqData = await hArgs.call(CrudHooks.BEFORE_UPSERT, reqData);
 
-        const body = reqData.body as CrudDto<T_Name, T_Entity>;
+        const body = (reqData.body as CrudDto<T_Name, T_Entity>)?.[this.options.name];
 
-        if (!body[this.options.name]) {
+        if (!body) {
           const availableKeys = Object.keys(reqData.body).join(", ");
           const error = new Error(
             `CRUD Update Error: "body" does not have a "${this.options.name}", "body" contains "${availableKeys}"`,

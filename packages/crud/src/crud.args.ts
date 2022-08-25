@@ -2,7 +2,7 @@ import type { AnyEntity, EntityManager, FindOneOptions, FindOptions } from "@mik
 import { CrudParamTypes } from "./decorators";
 import { CrudDto, CrudHooks, CrudOptions, CrudSearchQuery, WhereQuery } from "./crud.types";
 import { getMetadataStorage } from "./metadata-storage";
-import type { ModuleRef } from "@nestjs/core";
+import { ModuleRef } from "@nestjs/core";
 
 export class CrudArgsData<T_Name extends string, T_Entity extends AnyEntity<T_Entity>, P extends string = never> {
   [CrudParamTypes.ENTITY_MANAGER]?: EntityManager;

@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@ahas/class-converter@^1.0.5":
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/@ahas/class-converter/-/class-converter-1.0.5.tgz#0bd1565e7fcd74e7aeb01064ff16fcd671942f03"
-  integrity sha512-RAe9Xne5X/1MMm4+gQosdE7clBH3EjOJCXGUaxdYqczBQ7KdkfakUi2IHrxIo10dMbh65GBLU2JodyrdBgz9mA==
+"@ahas/class-converter@^1.0.6":
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/@ahas/class-converter/-/class-converter-1.0.6.tgz#6173871345b4ba336365f30547664f6f0fc7a01f"
+  integrity sha512-P0T/pkMiVNF9Pm/tVOBoCnPNB5x3emwtf8YDQXMFJo4pjiSgzrDiK8kkXHhuuebxh/t2796oHVl2cdbqqbsAyQ==
   dependencies:
     "@nestjs/swagger" "^5.2.1"
     class-transformer "^0.5.1"
@@ -17,11 +17,9 @@
   integrity sha512-U75NMMXkoHe2sPLiDWjZ82G1URGBUHloZZqm2pySnTvpIBLSf5ffX/XuTeLvY1hS8AHwxLWhaRlqBnHoK0Zcdw==
 
 "@ahas/mikro-crud@./packages/crud":
-  version "1.3.0-beta-0"
+  version "1.3.0-beta-1"
   dependencies:
-    "@ahas/class-converter" "^1.0.5"
     "@ahas/join-url" "^1.0.4"
-    "@nestjs/swagger" "^6.0.5"
     deepmerge "^4.2.2"
 
 "@ampproject/remapping@^2.1.0":
@@ -768,11 +766,6 @@
   resolved "https://registry.yarnpkg.com/@nestjs/mapped-types/-/mapped-types-1.0.1.tgz#78b62041c7a407db4a90eb140567321602bed18e"
   integrity sha512-NFvofzSinp00j5rzUd4tf+xi9od6383iY0JP7o0Bnu1fuItAUkWBgc4EKuIQ3D+c2QI3i9pG1kDWAeY27EMGtg==
 
-"@nestjs/mapped-types@1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@nestjs/mapped-types/-/mapped-types-1.1.0.tgz#54a9fa61079635dd6c3c75fd9593f20b2302a55b"
-  integrity sha512-+2kSly4P1QI+9eGt+/uGyPdEG1hVz7nbpqPHWZVYgoqz8eOHljpXPag+UCVRw9zo2XCu4sgNUIGe8Uk0+OvUQg==
-
 "@nestjs/platform-express@^9.0.7":
   version "9.0.11"
   resolved "https://registry.yarnpkg.com/@nestjs/platform-express/-/platform-express-9.0.11.tgz#49110e02944f3ea4b14936b3ffaa1060230e642e"
@@ -803,17 +796,6 @@
     "@nestjs/mapped-types" "1.0.1"
     lodash "4.17.21"
     path-to-regexp "3.2.0"
-
-"@nestjs/swagger@^6.0.5":
-  version "6.0.5"
-  resolved "https://registry.yarnpkg.com/@nestjs/swagger/-/swagger-6.0.5.tgz#49c833008617fa9ea5e004b38b43e7aff524e99f"
-  integrity sha512-Iy6/Xvd+YVC2F6flIDew5/VnpM2m7kK3IMoft0JqQc0RVXEO45+9gSasN6c8E/s0PbOy9de055mivAhFjk/+lA==
-  dependencies:
-    "@nestjs/mapped-types" "1.1.0"
-    js-yaml "4.1.0"
-    lodash "4.17.21"
-    path-to-regexp "3.2.0"
-    swagger-ui-dist "4.13.2"
 
 "@nestjs/testing@^8.0.0":
   version "8.4.7"
@@ -3964,13 +3946,6 @@ js-tokens@^4.0.0:
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
   integrity sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==
 
-js-yaml@4.1.0, js-yaml@^4.1.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.1.0.tgz#c1fb65f8f5017901cdd2c951864ba18458a10602"
-  integrity sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==
-  dependencies:
-    argparse "^2.0.1"
-
 js-yaml@^3.13.1:
   version "3.14.1"
   resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.14.1.tgz#dae812fdb3825fa306609a8717383c50c36a0537"
@@ -3978,6 +3953,13 @@ js-yaml@^3.13.1:
   dependencies:
     argparse "^1.0.7"
     esprima "^4.0.0"
+
+js-yaml@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.1.0.tgz#c1fb65f8f5017901cdd2c951864ba18458a10602"
+  integrity sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==
+  dependencies:
+    argparse "^2.0.1"
 
 jsdom@^16.6.0:
   version "16.7.0"
@@ -5431,11 +5413,6 @@ supports-preserve-symlinks-flag@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
-
-swagger-ui-dist@4.13.2:
-  version "4.13.2"
-  resolved "https://registry.yarnpkg.com/swagger-ui-dist/-/swagger-ui-dist-4.13.2.tgz#fb814efd51bf06aa8630c0a0af6e3caa48ac6552"
-  integrity sha512-jHL6UyIYpvEI7NsuWd0R3hJaPQTg6Oo4qSBo+oVfOEkv6rrQm/475RGSMmZgV6ajp+Sgrp9CqrDjQYAgQqiv1A==
 
 symbol-observable@4.0.0:
   version "4.0.0"

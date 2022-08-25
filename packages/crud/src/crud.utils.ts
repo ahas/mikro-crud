@@ -139,7 +139,7 @@ export async function assignEntity<T extends AnyEntity<T>>(em: EntityManager, en
         const e = await findOrCreateEntity(em, entityData, relation, entity[relation.name]);
         await assignEntity(em, e, entityData);
         entity[relation.name] = e;
-      } else {
+      } else if (!!entityData) {
         entity[relation.name] = em.getReference(relation.targetMeta.class, entityData, { wrapped: true }) as any;
       }
     } else if (relation.reference === "1:m" || relation.reference === "m:n") {

@@ -2,7 +2,6 @@ import fs from "fs";
 import { extname, join, relative, resolve } from "path";
 import { AfterDelete, BeforeDelete, Collection, Entity, EntityManager, Property } from "@mikro-orm/core";
 import { ToNumber, ToString } from "@ahas/class-converter";
-import type { S3 } from "aws-sdk";
 import { IdEntity } from "./id.entity";
 import { CrudModule } from "../crud.module";
 
@@ -82,7 +81,7 @@ export abstract class File extends IdEntity {
     entity.dir = file.destination;
     entity.path = file.path;
     entity.ext = extname(file.originalname);
-    entity.key = file.key;
+    entity.key = file.key || entity.localName;
     entity.bucket = file.bucket;
 
     return entity;
