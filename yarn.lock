@@ -2,19 +2,19 @@
 # yarn lockfile v1
 
 
-"@ahas/class-converter@^1.0.6":
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/@ahas/class-converter/-/class-converter-1.0.6.tgz#6173871345b4ba336365f30547664f6f0fc7a01f"
-  integrity sha512-P0T/pkMiVNF9Pm/tVOBoCnPNB5x3emwtf8YDQXMFJo4pjiSgzrDiK8kkXHhuuebxh/t2796oHVl2cdbqqbsAyQ==
+"@ahas/class-converter@^1.0.7":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@ahas/class-converter/-/class-converter-1.0.7.tgz#9c359c162e1335bae8362a5f82279eaf4b366c6e"
+  integrity sha512-VCY2CswxpZBbiB6eMrqyOFLeDroA1o9k8vlWuuvEPz0/XOJXAKi/UOLYUQj9aOlu9cd8aaFyk1MVD6z5WurciA==
   dependencies:
     "@nestjs/swagger" "^5.2.1"
     class-transformer "^0.5.1"
     class-validator "^0.13.2"
 
-"@ahas/class-converter@^1.0.7":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@ahas/class-converter/-/class-converter-1.0.7.tgz#9c359c162e1335bae8362a5f82279eaf4b366c6e"
-  integrity sha512-VCY2CswxpZBbiB6eMrqyOFLeDroA1o9k8vlWuuvEPz0/XOJXAKi/UOLYUQj9aOlu9cd8aaFyk1MVD6z5WurciA==
+"@ahas/class-converter@^1.0.8":
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/@ahas/class-converter/-/class-converter-1.0.8.tgz#0bea5f95b7f823a964a622d2853437a938b4b98c"
+  integrity sha512-Cpe6v6fdp+yKvIP+34s1VH11EDmRfB4OGooWGy9s0/MLOCbZItMqq0Uthq88RhpegvrjzmMiV+Bim2OnxcYZ6g==
   dependencies:
     "@nestjs/swagger" "^5.2.1"
     class-transformer "^0.5.1"
@@ -26,9 +26,9 @@
   integrity sha512-U75NMMXkoHe2sPLiDWjZ82G1URGBUHloZZqm2pySnTvpIBLSf5ffX/XuTeLvY1hS8AHwxLWhaRlqBnHoK0Zcdw==
 
 "@ahas/mikro-crud@./packages/crud":
-  version "1.3.0-beta-2"
+  version "1.3.0-beta-4"
   dependencies:
-    "@ahas/class-converter" "^1.0.6"
+    "@ahas/class-converter" "^1.0.7"
     "@ahas/join-url" "^1.0.4"
     deepmerge "^4.2.2"
 
