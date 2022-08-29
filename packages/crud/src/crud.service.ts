@@ -29,6 +29,7 @@ import { assignEntity, toPlainObject } from "./crud.utils";
 import { CrudArgs } from "./crud.args";
 import { CrudParamTypes } from "./decorators";
 import fs from "fs";
+import { resolve } from "path";
 
 @Injectable()
 export class CrudService<T_Name extends string, T_Entity extends AnyEntity<T_Entity>, P extends string = never> {
@@ -407,7 +408,7 @@ export class CrudService<T_Name extends string, T_Entity extends AnyEntity<T_Ent
           Key: file.key,
         });
       } else if (fs.existsSync(file.path)) {
-        fs.unlinkSync(process.cwd() + file.path);
+        fs.unlinkSync(resolve(process.cwd(), file.path));
       }
     }
   }

@@ -149,7 +149,7 @@ export abstract class File extends IdEntity {
 }
 
 function getFieldPaths(fieldname: string): string[] {
-  return fieldname.replace("[", ".").replaceAll("][", ".").replaceAll("]", "").split(".");
+  return fieldname.replace(/\]\[/gi, ".").replace(/\[/gi, ".").replace(/\]/gi, "").split(".");
 }
 
 function parseField(data: any, fieldname: string): any {
