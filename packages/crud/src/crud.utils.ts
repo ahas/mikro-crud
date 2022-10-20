@@ -77,6 +77,7 @@ export function toPlainArray(items: any[]): any[] {
 
 export function compareEntity(entity: any, data: any) {
   const metadata = entity.__meta as EntityMetadata;
+
   for (const pk of metadata.primaryKeys) {
     if (entity[pk] != data[pk]) {
       return false;
@@ -121,8 +122,10 @@ export async function assignEntity<T extends AnyEntity<T>>(em: EntityManager, en
   }
 
   const metadata = entity.__meta;
+
   for (const key in metadata.properties) {
     const prop = metadata.properties[key];
+
     if (prop.reference === "scalar" && key in data) {
       entity[key] = data[key];
     }
@@ -135,6 +138,7 @@ export async function assignEntity<T extends AnyEntity<T>>(em: EntityManager, en
 
     if (relation.reference === "1:1") {
       const entityData = data[relation.name];
+
       if (entityData !== null && !Array.isArray(entityData) && typeof entityData === "object") {
         const e = await findOrCreateEntity(em, entityData, relation, entity[relation.name]);
         await assignEntity(em, e, entityData);
@@ -145,6 +149,7 @@ export async function assignEntity<T extends AnyEntity<T>>(em: EntityManager, en
     } else if (relation.reference === "1:m" || relation.reference === "m:n") {
       const rel = data[relation.name];
       const result = [];
+
       if (Array.isArray(rel)) {
         for (const entityData of rel) {
           const e = await findOrCreateEntity(em, entityData, relation);
@@ -158,14 +163,17 @@ export async function assignEntity<T extends AnyEntity<T>>(em: EntityManager, en
       }
     } else if (relation.reference === "m:1") {
       const rel = data[relation.name];
-      if (typeof rel === "object") {
-        const e = await findOrCreateEntity(em, rel, relation);
-        await assignEntity(em, e, data[relation.name]);
-        entity[relation.name] = e;
-      } else {
-        const e = await em.findOne(relation.targetMeta.class, rel);
-        await assignEntity(em, e, data[relation.name]);
-        entity[relation.name] = e;
+
+      if (rel) {
+        if (typeof rel === "object") {
+          const e = await findOrCreateEntity(em, rel, relation);
+          await assignEntity(em, e, data[relation.name]);
+          entity[relation.name] = e;
+        } else {
+          const e = await em.findOne(relation.targetMeta.class, rel);
+          await assignEntity(em, e, data[relation.name]);
+          entity[relation.name] = e;
+        }
       }
     }
   }

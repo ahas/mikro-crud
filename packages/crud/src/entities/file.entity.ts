@@ -20,7 +20,7 @@ declare global {
 }
 
 @Entity({ abstract: true })
-export abstract class File extends IdEntity {
+export abstract class File extends IdEntity<File> {
   // File API
   @Property()
   @ToString()

@@ -2,24 +2,10 @@ import { MikroOrmModule } from "@mikro-orm/nestjs";
 import { Module } from "@nestjs/common";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
-import { CrudModule } from "@ahas/mikro-crud";
-import { OneToOneParent } from "src/entities/one-to-one-parent";
 import { MikroORM } from "@mikro-orm/core";
-import { OneToOneChild } from "src/entities/one-to-one-child";
-
-const parentCrud = CrudModule.forFeature({
-  entity: OneToOneParent,
-  name: "parent",
-  path: "parents",
-  primaryKeys: ["parentId"],
-});
-
-const childCrud = CrudModule.forFeature({
-  entity: OneToOneChild,
-  name: "child",
-  path: "children",
-  primaryKeys: ["childId"],
-});
+import { OneToOneModule } from "src/apis/one-to-one.module";
+import { OneToManyModule } from "src/apis/one-to-many.module";
+import { ManyToManyModule } from "src/apis/many-to-many.module";
 
 @Module({
   imports: [
@@ -30,8 +16,9 @@ const childCrud = CrudModule.forFeature({
       entitiesTs: ["./src/entities/**/*.ts"],
       cache: { enabled: true, pretty: true },
     }),
-    parentCrud,
-    childCrud,
+    OneToOneModule,
+    OneToManyModule,
+    ManyToManyModule,
   ],
   controllers: [AppController],
   providers: [AppService],

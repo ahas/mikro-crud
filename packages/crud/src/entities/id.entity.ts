@@ -1,8 +1,8 @@
 import { ToNumber } from "@ahas/class-converter";
-import { PrimaryKey, Property } from "@mikro-orm/core";
+import { BaseEntity, PrimaryKey, Property } from "@mikro-orm/core";
 import { Exclude } from "class-transformer";
 
-export abstract class IdEntity {
+export abstract class IdEntity<T extends { id: number }> extends BaseEntity<T, "id"> {
   @PrimaryKey()
   @ToNumber({ int: true })
   id!: number;
